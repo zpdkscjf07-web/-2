@@ -1,0 +1,2500 @@
+① index.html — 화면 구성
+<!doctype html>
+<html lang="ko" translate="no">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google" content="notranslate">
+  <meta
+    name="description"
+    content="D F J K로 즐기는 30초 리듬게임. 직접 만든 비트와 난이도 비교 기록."
+  >
+
+  <title>PULSE / 30 — 리듬게임</title>
+
+  <link
+    rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23101319'/%3E%3Cpath d='M5 17h5l3-10 5 19 3-9h6' fill='none' stroke='%23d9ff65' stroke-width='3'/%3E%3C/svg%3E"
+  >
+
+  <link rel="stylesheet" href="style.css">
+  <script src="game.js" defer></script>
+</head>
+
+<body>
+  <main>
+    <header>
+      <a class="logo" href="./">PULSE<span> / 30</span></a>
+      <span class="edition">FOUR KEYS. ONE FLOW.</span>
+
+      <button id="recordsToggle" class="quiet">
+        기록 & 안내 ↗
+      </button>
+    </header>
+
+    <div class="layout">
+      <aside class="intro">
+        <div class="eyebrow">30 SECOND RHYTHM SESSION</div>
+
+        <h1>
+          비트에<br>
+          손끝을<br>
+          <em>맞춰봐.</em>
+        </h1>
+
+        <p>
+          내려오는 노트가 판정선에 닿을 때<br>
+          해당 키를 눌러 리듬을 이어가세요.
+        </p>
+
+        <div class="track">
+          <span class="track-icon">♫</span>
+
+          <div>
+            <strong>NEON STEPS</strong>
+            <small>Original synth loop · 120 BPM</small>
+          </div>
+
+          <span class="duration">0:30</span>
+        </div>
+
+        <div class="rules">
+          <strong>이번 판의 목표</strong>
+
+          <p>
+            56개 노트 중 40개 이상 적중하면 성공.<br>
+            30초 종료 시 미달이면 실패합니다.<br>
+            잘못 누르면 콤보가 끊깁니다.
+          </p>
+        </div>
+
+        <div class="key-guide">
+          <kbd>D</kbd>
+          <kbd>F</kbd>
+          <span>왼손 · 오른손</span>
+          <kbd>J</kbd>
+          <kbd>K</kbd>
+        </div>
+
+        <small class="hint">
+          Space 일시정지 / 재개 · 창 이탈 시 자동 정지
+        </small>
+      </aside>
+
+      <section class="game" aria-label="리듬게임">
+        <div class="game-top">
+          <span id="state">READY</span>
+          <span>NEON STEPS <b>120 BPM</b></span>
+        </div>
+
+        <div class="stats">
+          <div>
+            <small>SCORE</small>
+            <strong id="score">00000</strong>
+          </div>
+
+          <div>
+            <small>COMBO</small>
+            <strong id="combo">0×</strong>
+          </div>
+
+          <div>
+            <small>TIME LEFT</small>
+            <strong id="time">30.0</strong>
+          </div>
+        </div>
+
+        <div class="progress">
+          <i id="progress"></i>
+        </div>
+
+        <div id="field" class="field">
+          <div class="lane-lines"></div>
+          <div id="notes"></div>
+          <div id="judge" class="judgment"></div>
+
+          <div class="hit-line">
+            <span>HIT HERE</span>
+          </div>
+
+          <div id="overlay" class="overlay">
+            <span class="eyebrow">READY WHEN YOU ARE</span>
+
+            <h2 id="overlayTitle">리듬을 시작할 시간</h2>
+
+            <p id="overlayText">
+              D · F · J · K 를 판정선에 맞춰 누르세요.
+            </p>
+
+            <button id="start" class="primary">
+              플레이 시작 <span>▶</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="pads">
+          <button data-lane="0" aria-label="D 노트 입력">D</button>
+          <button data-lane="1" aria-label="F 노트 입력">F</button>
+          <button data-lane="2" aria-label="J 노트 입력">J</button>
+          <button data-lane="3" aria-label="K 노트 입력">K</button>
+        </div>
+
+        <div class="game-bottom">
+          <span id="hitcount">0 / 56 HIT</span>
+          <button id="pause" disabled>일시정지 Ⅱ</button>
+          <button id="restart">다시 시작 ↻</button>
+        </div>
+      </section>
+
+      <aside class="settings">
+        <div class="eyebrow">SESSION SETTINGS</div>
+        <h2>나만의 템포</h2>
+
+        <label for="mode">판정 난이도</label>
+
+        <select id="mode">
+          <option value="A">A · 기본 ±100ms</option>
+          <option value="B">B · 여유 ±150ms</option>
+        </select>
+
+        <p class="muted">
+          곡·속도·노트는 그대로.<br>
+          판정 시간만 달라집니다.
+        </p>
+
+        <div class="setting-row">
+          <div>
+            <strong>사운드</strong>
+            <small>비트와 노트 소리</small>
+          </div>
+
+          <input
+            id="sound"
+            type="checkbox"
+            role="switch"
+            checked
+            aria-label="사운드 켜기"
+          >
+        </div>
+
+        <div class="setting-row">
+          <div>
+            <strong>움직임 줄이기</strong>
+            <small>적중 시 번쩍임 끄기</small>
+          </div>
+
+          <input
+            id="reduce"
+            type="checkbox"
+            role="switch"
+            aria-label="움직임 줄이기"
+          >
+        </div>
+
+        <div class="best">
+          <small>PERSONAL BEST</small>
+          <strong id="best">00000</strong>
+          <span>이 브라우저에 자동 저장</span>
+        </div>
+
+        <div class="session-count">
+          <span>난이도 비교 기록</span>
+
+          <p>
+            <b id="aCount">0</b> / 10 <small>A</small>
+            <i></i>
+            <b id="bCount">0</b> / 10 <small>B</small>
+          </p>
+
+          <button id="openRecords">플레이 기록 보기 ↗</button>
+        </div>
+
+        <p id="storageStatus" class="storage" role="status"></p>
+      </aside>
+    </div>
+
+    <section id="records" hidden>
+      <div class="section-heading">
+        <div>
+          <div class="eyebrow">YOUR PLAY, YOUR DECISION</div>
+          <h2>기록으로 고르는 난이도</h2>
+        </div>
+
+        <button id="closeRecords">접기 ↑</button>
+      </div>
+
+      <p>
+        같은 환경에서 A 10회 → B 10회 플레이하세요.
+        각 설정의 첫 10회 완료 기록을 비교합니다.
+        중단·재시작한 판은 제외됩니다.
+      </p>
+
+      <div id="summary" class="summary"></div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>회차</th>
+              <th>설정</th>
+              <th>점수</th>
+              <th>시간</th>
+              <th>적중</th>
+              <th>결과</th>
+              <th>실패 원인</th>
+            </tr>
+          </thead>
+
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+
+      <label for="choice">내 최종 선택</label>
+
+      <select id="choice">
+        <option value="">아직 선택하지 않음</option>
+        <option value="A">A</option>
+        <option value="B">B</option>
+      </select>
+
+      <label for="reason">
+        선택 이유 (개인정보를 적지 마세요)
+      </label>
+
+      <textarea
+        id="reason"
+        maxlength="2000"
+        placeholder="예: B의 적중 수 중앙값이 목표에 더 가까워 B를 선택했다."
+      ></textarea>
+
+      <button id="saveDecision">판단 저장</button>
+      <button id="export">기록 내려받기</button>
+      <button id="reset">저장 기록 초기화</button>
+
+      <p id="decisionStatus" role="status"></p>
+
+      <details>
+        <summary>저장·효과·검수
+① index.html — 게임 화면
+<!doctype html>
+<html lang="ko" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google" content="notranslate">
+  <meta
+    name="description"
+    content="D·F·J·K로 즐기는 30초 리듬게임. 자체 비트와 난이도 비교 기록."
+  >
+
+  <title>PULSE / 30 — 리듬게임</title>
+
+  <link
+    rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23101319'/%3E%3Cpath d='M5 17h5l3-10 5 19 3-9h6' fill='none' stroke='%23dcff70' stroke-width='3'/%3E%3C/svg%3E"
+  >
+
+  <link rel="stylesheet" href="style.css">
+  <script src="game.js" defer></script>
+</head>
+
+<body>
+  <main>
+    <header>
+      <a class="logo" href="./">PULSE<span> / 30</span></a>
+      <span class="edition">FOUR KEYS. ONE FLOW.</span>
+      <button id="recordsToggle" class="quiet">기록 & 안내 ↗</button>
+    </header>
+
+    <div class="layout">
+      <aside class="intro">
+        <div class="eyebrow">30 SECOND RHYTHM SESSION</div>
+
+        <h1>
+          비트에<br>
+          손끝을<br>
+          <em>맞춰봐.</em>
+        </h1>
+
+        <p>
+          내려오는 노트가 판정선에 닿을 때<br>
+          해당 키를 눌러 리듬을 이어가세요.
+        </p>
+
+        <div class="track">
+          <span class="track-icon">♫</span>
+
+          <div>
+            <strong>NEON STEPS</strong>
+            <small>Original synth loop · 120 BPM</small>
+          </div>
+
+          <span class="duration">0:30</span>
+        </div>
+
+        <div class="rules">
+          <strong>이번 판의 목표</strong>
+
+          <p>
+            56개 노트 중 40개 이상 적중하면 성공.<br>
+            30초 종료 시 미달이면 실패합니다.<br>
+            잘못 누르면 콤보가 끊깁니다.
+          </p>
+        </div>
+
+        <div class="key-guide">
+          <kbd>D</kbd>
+          <kbd>F</kbd>
+          <span>왼손 · 오른손</span>
+          <kbd>J</kbd>
+          <kbd>K</kbd>
+        </div>
+
+        <small class="hint">
+          Space 일시정지 / 재개 · 창 이탈 시 자동 정지
+        </small>
+      </aside>
+
+      <section class="game" aria-label="리듬게임">
+        <div class="game-top">
+          <span id="state">READY</span>
+          <span>NEON STEPS <b>120 BPM</b></span>
+        </div>
+
+        <div class="stats">
+          <div>
+            <small>SCORE</small>
+            <strong id="score">00000</strong>
+          </div>
+
+          <div>
+            <small>COMBO</small>
+            <strong id="combo">0×</strong>
+          </div>
+
+          <div>
+            <small>TIME LEFT</small>
+            <strong id="time">30.0</strong>
+          </div>
+        </div>
+
+        <div class="progress">
+          <i id="progress"></i>
+        </div>
+
+        <div id="field" class="field">
+          <div class="lane-lines"></div>
+          <div id="notes"></div>
+          <div id="judge" class="judgment"></div>
+
+          <div class="hit-line">
+            <span>HIT HERE</span>
+          </div>
+
+          <div id="overlay" class="overlay">
+            <span class="eyebrow">READY WHEN YOU ARE</span>
+
+            <h2 id="overlayTitle">리듬을 시작할 시간</h2>
+
+            <p id="overlayText">
+              D · F · J · K 를 판정선에 맞춰 누르세요.
+            </p>
+
+            <button id="start" class="primary">
+              플레이 시작 <span>▶</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="pads">
+          <button data-lane="0" aria-label="D 노트 입력">D</button>
+          <button data-lane="1" aria-label="F 노트 입력">F</button>
+          <button data-lane="2" aria-label="J 노트 입력">J</button>
+          <button data-lane="3" aria-label="K 노트 입력">K</button>
+        </div>
+
+        <div class="game-bottom">
+          <span id="hitcount">0 / 56 HIT</span>
+          <button id="pause" disabled>일시정지 Ⅱ</button>
+          <button id="restart">다시 시작 ↻</button>
+        </div>
+      </section>
+
+      <aside class="settings">
+        <div class="eyebrow">SESSION SETTINGS</div>
+        <h2>나만의 템포</h2>
+
+        <label for="mode">판정 난이도</label>
+
+        <select id="mode">
+          <option value="A">A · 기본 ±100ms</option>
+          <option value="B">B · 여유 ±150ms</option>
+        </select>
+
+        <p class="muted">
+          곡·속도·노트는 그대로.<br>
+          판정 시간만 달라집니다.
+        </p>
+
+        <div class="setting-row">
+          <div>
+            <strong>사운드</strong>
+            <small>비트와 노트 소리</small>
+          </div>
+
+          <input
+            id="sound"
+            type="checkbox"
+            role="switch"
+            checked
+            aria-label="사운드 켜기"
+          >
+        </div>
+
+        <div class="setting-row">
+          <div>
+            <strong>움직임 줄이기</strong>
+            <small>적중 시 번쩍임 끄기</small>
+          </div>
+
+          <input
+            id="reduce"
+            type="checkbox"
+            role="switch"
+            aria-label="움직임 줄이기"
+          >
+        </div>
+
+        <div class="best">
+          <small>PERSONAL BEST</small>
+          <strong id="best">00000</strong>
+          <span>이 브라우저에 자동 저장</span>
+        </div>
+
+        <div class="session-count">
+          <span>난이도 비교 기록</span>
+
+          <p>
+            <b id="aCount">0</b> / 10 <small>A</small>
+            <i></i>
+            <b id="bCount">0</b> / 10 <small>B</small>
+          </p>
+
+          <button id="openRecords">플레이 기록 보기 ↗</button>
+        </div>
+
+        <p id="storageStatus" class="storage" role="status"></p>
+      </aside>
+    </div>
+
+    <section id="records" hidden>
+      <div class="section-heading">
+        <div>
+          <div class="eyebrow">YOUR PLAY, YOUR DECISION</div>
+          <h2>기록으로 고르는 난이도</h2>
+        </div>
+
+        <button id="closeRecords">접기 ↑</button>
+      </div>
+
+      <p>
+        같은 환경에서 A 10회 → B 10회 플레이하세요.
+        각 설정의 첫 10회 완료 기록을 비교합니다.
+        중단·재시작한 판은 제외됩니다.
+      </p>
+
+      <div id="summary" class="summary"></div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>회차</th>
+              <th>설정</th>
+              <th>점수</th>
+              <th>시간</th>
+              <th>적중</th>
+              <th>결과</th>
+              <th>실패 원인</th>
+            </tr>
+          </thead>
+
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+
+      <label for="choice">내 최종 선택</label>
+
+      <select id="choice">
+        <option value="">아직 선택하지 않음</option>
+        <option value="A">A</option>
+        <option value="B">B</option>
+      </select>
+
+      <label for="reason">
+        선택 이유 — 개인정보를 적지 마세요
+      </label>
+
+      <textarea
+        id="reason"
+        maxlength="2000"
+        placeholder="예: B의 적중 수 중앙값이 목표에 더 가까워 B를 선택했다."
+      ></textarea>
+
+      <div class="record-actions">
+        <button id="saveDecision">판단 저장</button>
+        <button id="export">기록 내려받기</button>
+        <button id="reset">저장 기록 초기화</button>
+      </div>
+
+      <p id="decisionStatus" role="status"></p>
+
+      <details>
+        <summary>저장·효과·검사 안내</summary>
+
+        <p>
+          새 판마다 점수, 콤보, 시간, 적중 수, 입력 수와 노트를
+          초기화합니다. 최고 점수·완료 기록·설정·최종 판단은
+          이 브라우저에만 저장됩니다.
+        </p>
+
+        <p>
+          비어 있거나 손상된 저장은 최고 점수 0, 기록 없음,
+          A 설정, 소리 켜기로 복구합니다.
+          저장 불가 시에도 메모리에서 게임은 계속됩니다.
+          움직임 감소 기본값은 운영체제 설정을 따릅니다.
+        </p>
+
+        <p>
+          색 번쩍임은 노트 적중에서만 발생합니다.
+          움직임 줄이기를 켜면 즉시 사라집니다.
+          노트 이동은 조작에 필수이므로 유지됩니다.
+          음소거는 진행 중 소리까지 즉시 끕니다.
+        </p>
+
+        <p>
+          곡은 코드로 합성한 자체 비트이며
+          외부 음원·계정·분석 추적을 사용하지 않습니다.
+        </p>
+
+        <p>
+          실제 브라우저의 두 해상도·10분 검사와 사람의 20회 비교는
+          별도 확인이 필요합니다. 자동 기록을 채우거나
+          검사 완료로 표시하지 않습니다.
+        </p>
+
+        <button id="selftest">입력·저장 로직 검사</button>
+
+        <pre id="testResult">아직 검사하지 않았습니다.</pre>
+
+        <p>
+          PC 확인: 1366×768, 1920×1080에서 잘림·가로 넘침 확인 →
+          플레이 중 창 크기 변경·다른 창 이동·복귀 확인 →
+          10분 동안 여러 판 진행하고 콘솔 오류와 재조작 확인.
+          일시정지 중에는 시간과 노트가 그대로여야 합니다.
+        </p>
+      </details>
+
+      <details>
+        <summary>짧은 확인법 & 제출 설명</summary>
+
+        <p>
+          <b>① 어디로 가나요</b><br>
+          배포한 게임 주소를 새 시크릿 창에서 엽니다.
+          제출할 소스 주소도 로그인 없이 열리는지 확인합니다.
+        </p>
+
+        <p>
+          <b>② 무엇을 하나요 — 3단계</b><br>
+          플레이 시작 → D·F·J·K로 노트 적중 →
+          결과 확인 후 다시 시작.
+        </p>
+
+        <p>
+          <b>③ 무엇이 보이면 통과인가요</b><br>
+          30초 후 성공/실패, 다시 시작 후 점수 0·시간 30초.
+          규칙·조작·상태가 화면에 표시됩니다.
+        </p>
+
+        <p>
+          <b>④ 안 될 때 무엇이 보이나요</b><br>
+          창 이탈 시 PAUSED와 재개 버튼,
+          저장 불가·손상 시 저장 안내가 보입니다.
+          소리가 없으면 사운드 설정과 브라우저 음소거를 확인하세요.
+        </p>
+
+        <p>
+          <b>AI에게 맡긴 일</b><br>
+          게임 구현, 자체 합성 비트, 저장 복구,
+          검사 기능과 기록 비교 화면 작성.
+        </p>
+
+        <p>
+          <b>본인이 직접 판단한 일</b><br>
+          리듬게임 장르 선택.
+          최종 판정값과 선택 이유는 20회 플레이 뒤 직접 작성합니다.
+        </p>
+
+        <p>
+          <b>AI 제안을 따르지 않은 일</b><br>
+          아직 기록된 사항 없음.
+          플레이 후 제안을 바꿨다면 내용과 이유를 추가하세요.
+        </p>
+      </details>
+    </section>
+
+    <footer>
+      <span>PULSE / 30</span>
+      <span>30초의 집중, 한 번 더.</span>
+    </footer>
+  </main>
+</body>
+</html>
+② style.css — 디자인
+:root {
+  color-scheme: dark;
+  --bg: #101216;
+  --panel: #191c22;
+  --line: #30343b;
+  --muted: #969ca8;
+  --lime: #dcff70;
+  --blue: #b4c4ff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: #f2f3f4;
+  font: 16px/1.6 Arial, "Noto Sans KR", sans-serif;
+}
+
+button,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a,
+input,
+select {
+  touch-action: manipulation;
+}
+
+button {
+  cursor: pointer;
+  color: inherit;
+  background: #252931;
+  border: 1px solid #3b404a;
+  border-radius: 8px;
+  padding: 9px 15px;
+}
+
+button:hover {
+  border-color: var(--lime);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--lime);
+  outline-offset: 4px;
+}
+
+main {
+  max-width: 1512px;
+  margin: auto;
+  padding: 0 48px;
+}
+
+header {
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+}
+
+.logo {
+  font-size: 29px;
+  font-weight: 900;
+  letter-spacing: -1.5px;
+}
+
+.logo span {
+  color: var(--lime);
+}
+
+.edition,
+.eyebrow {
+  font-size: 12px;
+  letter-spacing: 1.7px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.quiet {
+  background: transparent;
+  border: 0;
+  font-size: 14px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr minmax(360px, 480px) 260px;
+  gap: 42px;
+  padding: 36px 0;
+}
+
+.intro {
+  padding-top: 14px;
+}
+
+h1 {
+  font-size: clamp(42px, 4.4vw, 67px);
+  line-height: 1.2;
+  letter-spacing: -3px;
+  margin: 24px 0;
+}
+
+h1 em {
+  font-style: normal;
+  color: var(--lime);
+}
+
+.intro > p,
+.rules p,
+.muted {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.track {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 28px 0;
+  border-block: 1px solid var(--line);
+  padding: 20px 0;
+}
+
+.track-icon {
+  width: 40px;
+  height: 40px;
+  background: #2c3431;
+  display: grid;
+  place-items: center;
+  font-size: 25px;
+  color: var(--lime);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.track strong {
+  font-size: 14px;
+}
+
+.track small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.duration {
+  font: 14px monospace;
+  margin-left: auto;
+  color: var(--muted);
+}
+
+.rules strong {
+  font-size: 14px;
+}
+
+.key-guide {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 24px;
+}
+
+kbd {
+  padding: 3px 10px;
+  background: #24272e;
+  border: 1px solid #3a3f48;
+  border-bottom: 3px solid #3a3f48;
+  border-radius: 5px;
+  font: 16px monospace;
+}
+
+.key-guide span {
+  font-size: 12px;
+  color: var(--muted);
+  padding: 0 5px;
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--muted);
+  display: block;
+  margin-top: 12px;
+}
+
+.game {
+  border: 1px solid #3d424c;
+  border-radius: 15px;
+  overflow: hidden;
+  background: #15181e;
+  box-shadow: 0 16px 60px #0003;
+}
+
+.game-top {
+  display: flex;
+  justify-content: space-between;
+  padding: 13px 18px;
+  background: #20242b;
+  font: 12px monospace;
+}
+
+.game-top #state {
+  color: var(--lime);
+}
+
+.game-top b {
+  font-weight: 400;
+  color: var(--muted);
+  margin-left: 9px;
+}
+
+.stats {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 24px 10px;
+}
+
+.stats small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 1.5px;
+}
+
+.stats strong {
+  display: block;
+  font: 700 28px monospace;
+  letter-spacing: -1px;
+}
+
+.progress {
+  height: 3px;
+  background: #30343b;
+}
+
+.progress i {
+  display: block;
+  background: var(--lime);
+  width: 0;
+  height: 100%;
+}
+
+.field {
+  height: 330px;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(#101216, #191d24);
+}
+
+.lane-lines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to right,
+    transparent 0,
+    transparent calc(25% - 1px),
+    #ffffff0a calc(25% - 1px),
+    #ffffff0a 25%
+  );
+}
+
+.hit-line {
+  position: absolute;
+  bottom: 43px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--lime);
+  box-shadow: 0 0 15px #dcff7040;
+}
+
+.hit-line span {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  color: #dcff7077;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.note {
+  position: absolute;
+  top: 0;
+  left: calc(var(--lane) * 25% + 7px);
+  width: calc(25% - 14px);
+  height: 13px;
+  border-radius: 3px;
+  background: var(--lime);
+  border-bottom: 3px solid #899f47;
+  will-change: transform;
+}
+
+.note.outer {
+  background: var(--blue);
+  border-color: #707fa8;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  background: #101216db;
+  padding: 20px;
+}
+
+.overlay[hidden] {
+  display: none;
+}
+
+.overlay h2 {
+  font-size: 25px;
+  letter-spacing: -1px;
+  margin: 16px 0 4px;
+}
+
+.overlay p {
+  font-size: 14px;
+  color: #adb4c0;
+  max-width: 330px;
+}
+
+.primary {
+  background: var(--lime);
+  color: #172009;
+  border: 0;
+  font-weight: 700;
+  min-width: 230px;
+  padding: 13px 20px;
+  margin-top: 18px;
+}
+
+.primary span {
+  margin-left: 55px;
+}
+
+.pads {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 0 8px 12px;
+}
+
+.pads button {
+  height: 45px;
+  background: #292f3b;
+  color: var(--blue);
+  font: bold 20px monospace;
+  border-color: #424c63;
+  border-bottom-width: 3px;
+}
+
+.pads button:nth-child(2),
+.pads button:nth-child(3) {
+  background: #303726;
+  color: var(--lime);
+  border-color: #515e37;
+}
+
+.pads button.active {
+  background: var(--lime);
+  color: #15181e;
+}
+
+.judgment {
+  position: absolute;
+  top: 36%;
+  width: 100%;
+  text-align: center;
+  font: bold 25px monospace;
+  color: var(--lime);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.game-bottom {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 11px 14px;
+  background: #20242b;
+}
+
+.game-bottom span {
+  font: 12px monospace;
+  color: var(--muted);
+  margin-right: auto;
+}
+
+.game-bottom button {
+  font-size: 12px;
+  padding: 4px 8px;
+  background: transparent;
+}
+
+.settings {
+  padding: 16px 0;
+}
+
+.settings h2 {
+  font-size: 23px;
+  margin: 12px 0 26px;
+}
+
+.settings label {
+  font-size: 14px;
+  display: block;
+  margin-bottom: 9px;
+}
+
+select {
+  padding: 12px;
+  width: 100%;
+  background: #1c2027;
+  border: 1px solid #3b404a;
+  color: inherit;
+  border-radius: 8px;
+}
+
+.muted {
+  margin: 10px 0 24px;
+}
+
+.setting-row {
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 17px 0;
+}
+
+.setting-row strong {
+  font-size: 14px;
+}
+
+.setting-row small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+input[type="checkbox"] {
+  appearance: none;
+  cursor: pointer;
+  width: 37px;
+  height: 22px;
+  border-radius: 20px;
+  background: #40454e;
+  position: relative;
+  flex-shrink: 0;
+}
+
+input[type="checkbox"]::before {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: #11151a;
+  left: 3px;
+  top: 3px;
+  border-radius: 50%;
+}
+
+input[type="checkbox"]:checked {
+  background: var(--lime);
+}
+
+input[type="checkbox"]:checked::before {
+  left: 18px;
+}
+
+.best {
+  border: 1px solid #424b32;
+  border-radius: 10px;
+  background: #20251b;
+  padding: 18px;
+  margin: 16px 0 24px;
+}
+
+.best small {
+  font-size: 11px;
+  color: var(--lime);
+  letter-spacing: 1.5px;
+}
+
+.best strong {
+  display: block;
+  font: bold 33px monospace;
+  margin: 5px 0;
+}
+
+.best span {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.session-count > span {
+  font-size: 14px;
+}
+
+.session-count p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 16px monospace;
+  color: var(--muted);
+}
+
+.session-count b {
+  font-size: 24px;
+  color: #fff;
+}
+
+.session-count i {
+  height: 20px;
+  width: 1px;
+  background: var(--line);
+  margin: 0 10px;
+}
+
+.session-count button {
+  border: 0;
+  padding: 0;
+  font-size: 12px;
+  background: none;
+  color: var(--lime);
+}
+
+.storage {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+footer {
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 20px 0;
+}
+
+#records {
+  padding: 30px 0 50px;
+  border-top: 1px solid var(--line);
+}
+
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+#records p {
+  color: #b1b7c2;
+  font-size: 14px;
+}
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  color: var(--lime);
+  margin: 20px 0;
+}
+
+.table-wrap {
+  overflow: auto;
+  max-height: 330px;
+  margin-bottom: 20px;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 14px;
+  text-align: left;
+}
+
+th,
+td {
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+th {
+  color: var(--muted);
+}
+
+#records label {
+  display: block;
+  margin: 14px 0 6px;
+}
+
+#choice {
+  max-width: 280px;
+}
+
+textarea {
+  width: 100%;
+  min-height: 90px;
+  background: var(--panel);
+  color: inherit;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  resize: vertical;
+}
+
+.record-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+details {
+  border: 1px solid var(--line);
+  padding: 16px;
+  margin-top: 16px;
+  border-radius: 8px;
+}
+
+summary {
+  cursor: pointer;
+}
+
+pre {
+  white-space: pre-wrap;
+  font-size: 14px;
+}
+
+#reset {
+  color: #ffb4ae;
+}
+
+body.reduced .pads button.active {
+  background: #292f3b;
+  color: var(--blue);
+}
+
+@media (min-width: 1600px) {
+  .layout {
+    padding: 55px 0;
+    gap: 64px;
+  }
+
+  .field {
+    height: 410px;
+  }
+}
+
+@media (max-width: 1150px) {
+  main {
+    padding: 0 24px;
+  }
+
+  .layout {
+    grid-template-columns: 1fr minmax(330px, 440px);
+    gap: 26px;
+  }
+
+  .settings {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 30px;
+  }
+
+  .settings h2,
+  .settings .eyebrow {
+    display: none;
+  }
+
+  .best,
+  .muted {
+    margin: 0;
+  }
+
+  .settings label {
+    margin: 0;
+    align-self: center;
+  }
+
+  .session-count {
+    padding: 10px 0;
+  }
+}
+
+@media (max-width: 700px) {
+  main {
+    padding: 0 16px;
+  }
+
+  header {
+    height: 74px;
+  }
+
+  .edition {
+    display: none;
+  }
+
+  .logo {
+    font-size: 25px;
+  }
+
+  .layout {
+    display: flex;
+    flex-direction: column;
+    padding: 20px 0;
+    gap: 24px;
+  }
+
+  .intro h1 {
+    font-size: 30px;
+    letter-spacing: -1px;
+    margin: 8px 0;
+  }
+
+  .intro h1 br {
+    display: none;
+  }
+
+  .intro > p,
+  .track,
+  .key-guide,
+  .hint {
+    display: none;
+  }
+
+  .intro {
+    padding: 0;
+  }
+
+  .rules {
+    margin-top: 12px;
+  }
+
+  .rules p {
+    margin: 5px 0;
+  }
+
+  .eyebrow {
+    font-size: 10px;
+  }
+
+  .game {
+    width: 100%;
+  }
+
+  .field {
+    height: 300px;
+  }
+
+  .settings {
+    display: block;
+  }
+
+  .settings h2 {
+    display: block;
+  }
+
+  .settings select {
+    margin-bottom: 10px;
+  }
+
+  .best {
+    margin: 16px 0;
+  }
+
+  .summary {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  footer span:nth-child(2) {
+    display: none;
+  }
+}
+③ game.js — 게임 동작
+"use strict";
+
+(() => {
+  const $ = (id) => document.getElementById(id);
+
+  const STORAGE_KEY = "pulse30.v1";
+  const TOTAL_NOTES = 56;
+  const GAME_DURATION = 30;
+  const REQUIRED_HITS = 40;
+
+  const KEY_CODES = ["KeyD", "KeyF", "KeyJ", "KeyK"];
+  const pads = [...document.querySelectorAll(".pads button")];
+
+  function defaults() {
+    return {
+      version: 1,
+      best: 0,
+      records: [],
+      mode: "A",
+      sound: true,
+      reduce: window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches,
+      choice: "",
+      reason: ""
+    };
+  }
+
+  function validRecord(record) {
+    return (
+      record &&
+      ["A", "B"].includes(record.mode) &&
+      Number.isInteger(record.score) &&
+      record.score >= 0 &&
+      record.score <= 56000 &&
+      Number.isInteger(record.hits) &&
+      record.hits >= 0 &&
+      record.hits <= TOTAL_NOTES &&
+      record.time === GAME_DURATION &&
+      record.success === (record.hits >= REQUIRED_HITS) &&
+      ["노트 놓침", "없음"].includes(record.cause)
+    );
+  }
+
+  function decode(raw) {
+    if (!raw) {
+      return defaults();
+    }
+
+    const parsed = JSON.parse(raw);
+
+    const valid =
+      parsed &&
+      parsed.version === 1 &&
+      Number.isInteger(parsed.best) &&
+      parsed.best >= 0 &&
+      parsed.best <= 56000 &&
+      Array.isArray(parsed.records) &&
+      parsed.records.length <= 200 &&
+      parsed.records.every(validRecord) &&
+      ["A", "B"].includes(parsed.mode) &&
+      typeof parsed.sound === "boolean" &&
+      typeof parsed.reduce === "boolean" &&
+      ["", "A", "B"].includes(parsed.choice) &&
+      typeof parsed.reason === "string" &&
+      parsed.reason.length <= 2000;
+
+    if (!valid) {
+      throw new Error("손상된 저장");
+    }
+
+    return parsed;
+  }
+
+  let data;
+
+  try {
+    data = decode(localStorage.getItem(STORAGE_KEY));
+  } catch {
+    data = defaults();
+
+    $("storageStatus").textContent =
+      "저장값을 읽을 수 없어 기본값으로 복구했습니다.";
+
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch {
+      // 저장 불가 환경에서도 메모리에서 게임을 계속 실행합니다.
+    }
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      return true;
+    } catch {
+      $("storageStatus").textContent =
+        "저장 공간을 사용할 수 없습니다. 이번 방문 동안만 기록됩니다.";
+
+      return false;
+    }
+  }
+
+  let state = "ready";
+  let time = 0;
+  let lastTime = 0;
+  let score = 0;
+  let combo = 0;
+  let hits = 0;
+  let misses = 0;
+  let inputs = 0;
+  let chart = [];
+  let mode = "A";
+  let beatIndex = -1;
+  let judgeUntil = 0;
+
+  let audio = null;
+  let master = null;
+
+  const voices = new Set();
+  const flashTimers = new Map();
+
+  function makeChart() {
+    const pattern = [
+      0, 1, 2, 3,
+      1, 2, 0, 3,
+      2, 1, 3, 0,
+      1, 3, 2, 0
+    ];
+
+    return Array.from({ length: TOTAL_NOTES }, (_, index) => ({
+      time: 2 + index * 0.5,
+      lane: pattern[index % pattern.length],
+      done: false,
+      element: null
+    }));
+  }
+
+  function audioInit() {
+    try {
+      if (!audio) {
+        const AudioContextClass =
+          window.AudioContext || window.webkitAudioContext;
+
+        if (!AudioContextClass) {
+          throw new Error("오디오 미지원");
+        }
+
+        audio = new AudioContextClass();
+        master = audio.createGain();
+        master.connect(audio.destination);
+      }
+
+      master.gain.value = data.sound ? 0.22 : 0;
+
+      audio.resume().catch(() => {
+        $("storageStatus").textContent =
+          "오디오 재생이 차단되었습니다. 사운드를 다시 켜 보세요.";
+      });
+    } catch {
+      $("storageStatus").textContent =
+        "오디오를 사용할 수 없습니다. 화면으로 플레이할 수 있습니다.";
+    }
+  }
+
+  function tone(
+    frequency,
+    duration,
+    type = "sine",
+    delay = 0
+  ) {
+    if (
+      !audio ||
+      !master ||
+      !data.sound ||
+      audio.state !== "running"
+    ) {
+      return;
+    }
+
+    const oscillator = audio.createOscillator();
+    const gain = audio.createGain();
+    const startAt = audio.currentTime + delay;
+
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(frequency, startAt);
+
+    gain.gain.setValueAtTime(0, startAt);
+    gain.gain.linearRampToValueAtTime(0.4, startAt + 0.008);
+    gain.gain.exponentialRampToValueAtTime(
+      0.001,
+      startAt + duration
+    );
+
+    oscillator.connect(gain);
+    gain.connect(master);
+
+    oscillator.start(startAt);
+    oscillator.stop(startAt + duration + 0.01);
+
+    voices.add(oscillator);
+
+    oscillator.onended = () => {
+      voices.delete(oscillator);
+      oscillator.disconnect();
+      gain.disconnect();
+    };
+  }
+
+  function stopAudio() {
+    for (const oscillator of voices) {
+      try {
+        oscillator.stop();
+      } catch {
+        // 이미 끝난 음은 그대로 둡니다.
+      }
+    }
+
+    voices.clear();
+  }
+
+  function music() {
+    const targetBeat = Math.floor((time + 0.05) * 4);
+
+    while (beatIndex < targetBeat) {
+      beatIndex += 1;
+
+      const beatTime = beatIndex / 4;
+
+      if (
+        beatTime < time - 0.08 ||
+        beatTime >= GAME_DURATION
+      ) {
+        continue;
+      }
+
+      const delay = Math.max(0, beatTime - time);
+
+      if (beatIndex % 2 === 0) {
+        tone(
+          beatIndex % 8 === 0 ? 65 : 90,
+          0.13,
+          "sine",
+          delay
+        );
+
+        const melody = [220, 261.63, 329.63, 293.66];
+        const melodyIndex = Math.floor(beatIndex / 8) % 4;
+
+        tone(
+          melody[melodyIndex],
+          0.14,
+          "triangle",
+          delay
+        );
+      } else {
+        tone(1800, 0.025, "square", delay);
+      }
+    }
+  }
+
+  function clearFlashes() {
+    for (const timer of flashTimers.values()) {
+      clearTimeout(timer);
+    }
+
+    flashTimers.clear();
+
+    for (const pad of pads) {
+      pad.classList.remove("active");
+    }
+  }
+
+  function flashPad(lane) {
+    if (data.reduce) {
+      return;
+    }
+
+    const pad = pads[lane];
+
+    if (flashTimers.has(lane)) {
+      clearTimeout(flashTimers.get(lane));
+    }
+
+    pad.classList.add("active");
+
+    const timer = setTimeout(() => {
+      pad.classList.remove("active");
+      flashTimers.delete(lane);
+    }, 90);
+
+    flashTimers.set(lane, timer);
+  }
+
+  function applySettings() {
+    $("mode").value = data.mode;
+    $("sound").checked = data.sound;
+    $("reduce").checked = data.reduce;
+
+    document.body.classList.toggle("reduced", data.reduce);
+
+    if (master) {
+      master.gain.value = data.sound ? 0.22 : 0;
+    }
+
+    $("best").textContent = String(data.best).padStart(5, "0");
+  }
+
+  function metrics() {
+    $("score").textContent = String(score).padStart(5, "0");
+    $("combo").textContent = `${combo}×`;
+
+    $("time").textContent = Math.max(
+      0,
+      GAME_DURATION - time
+    ).toFixed(1);
+
+    $("hitcount").textContent = `${hits} / ${TOTAL_NOTES} HIT`;
+
+    $("progress").style.width =
+      `${(time / GAME_DURATION) * 100}%`;
+  }
+
+  function setState(nextState) {
+    state = nextState;
+
+    const labels = {
+      ready: "READY",
+      playing: "PLAYING",
+      paused: "PAUSED",
+      success: "CLEAR",
+      failed: "FAILED"
+    };
+
+    $("state").textContent = labels[nextState];
+
+    $("pause").disabled =
+      !["playing", "paused"].includes(nextState);
+
+    $("pause").textContent =
+      nextState === "paused" ? "재개 ▶" : "일시정지 Ⅱ";
+
+    $("mode").disabled =
+      ["playing", "paused"].includes(nextState);
+  }
+
+  function announce(word) {
+    $("judge").textContent = word;
+    judgeUntil = time + 0.45;
+  }
+
+  function resetRound() {
+    stopAudio();
+    clearFlashes();
+
+    time = 0;
+    lastTime = 0;
+    score = 0;
+    combo = 0;
+    hits = 0;
+    misses = 0;
+    inputs = 0;
+    beatIndex = -1;
+    judgeUntil = 0;
+    chart = [];
+
+    $("notes").replaceChildren();
+    $("judge").textContent = "";
+
+    metrics();
+  }
+
+  function start() {
+    resetRound();
+    audioInit();
+
+    mode = data.mode;
+    chart = makeChart();
+
+    for (const note of chart) {
+      const element = document.createElement("div");
+
+      element.className =
+        "note" + ([0, 3].includes(note.lane) ? " outer" : "");
+
+      element.style.setProperty("--lane", note.lane);
+      element.hidden = true;
+
+      $("notes").append(element);
+      note.element = element;
+    }
+
+    $("overlay").hidden = true;
+
+    setState("playing");
+    lastTime = performance.now();
+
+    draw();
+  }
+
+  function trimRecords() {
+    if (data.records.length <= 200) {
+      return;
+    }
+
+    // 각 설정의 첫 10회는 비교용으로 보존합니다.
+    const counts = { A: 0, B: 0 };
+
+    const removableIndex = data.records.findIndex((record) => {
+      counts[record.mode] += 1;
+      return counts[record.mode] > 10;
+    });
+
+    if (removableIndex >= 0) {
+      data.records.splice(removableIndex, 1);
+    }
+  }
+
+  function end() {
+    const success = hits >= REQUIRED_HITS;
+
+    setState(success ? "success" : "failed");
+    stopAudio();
+    clearFlashes();
+
+    data.records.push({
+      mode,
+      score,
+      hits,
+      time: GAME_DURATION,
+      success,
+      cause: success ? "없음" : "노트 놓침"
+    });
+
+    trimRecords();
+
+    data.best = Math.max(data.best, score);
+
+    save();
+    applySettings();
+    renderRecords();
+
+    $("overlayTitle").textContent = success
+      ? "리듬을 완성했어요!"
+      : "다시 비트를 잡아볼까요?";
+
+    $("overlayText").textContent =
+      `${hits} / ${TOTAL_NOTES} 적중 · ` +
+      `${score.toLocaleString()}점 · 목표 ${REQUIRED_HITS}개`;
+
+    $("start").textContent = "다시 플레이 ↻";
+    $("overlay").hidden = false;
+  }
+
+  function advance(now) {
+    if (state !== "playing") {
+      return;
+    }
+
+    const delta = Math.max(0, (now - lastTime) / 1000);
+    lastTime = now;
+
+    time = Math.min(GAME_DURATION, time + delta);
+
+    const tolerance = mode === "A" ? 0.1 : 0.15;
+
+    for (const note of chart) {
+      if (!note.done && time > note.time + tolerance) {
+        note.done = true;
+        misses += 1;
+        combo = 0;
+        announce("MISS");
+      }
+    }
+
+    if (time >= GAME_DURATION) {
+      end();
+    }
+  }
+
+  function draw() {
+    const line = $("field").clientHeight - 44;
+
+    for (const note of chart) {
+      const y =
+        line - (note.time - time) * (line / 1.75);
+
+      note.element.hidden =
+        note.done || y < -15 || y > line + 32;
+
+      if (!note.element.hidden) {
+        note.element.style.transform =
+          `translateY(${y - 6}px)`;
+      }
+    }
+
+    if (time > judgeUntil) {
+      $("judge").textContent = "";
+    }
+
+    metrics();
+  }
+
+  function frame(now) {
+    if (state === "playing") {
+      advance(now);
+
+      if (state === "playing") {
+        music();
+      }
+
+      draw();
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  function hit(lane) {
+    if (state !== "playing") {
+      return;
+    }
+
+    advance(performance.now());
+
+    if (state !== "playing") {
+      draw();
+      return;
+    }
+
+    inputs += 1;
+
+    const tolerance = mode === "A" ? 0.1 : 0.15;
+
+    const note = chart.find((item) => {
+      return (
+        !item.done &&
+        item.lane === lane &&
+        Math.abs(item.time - time) <= tolerance
+      );
+    });
+
+    if (note) {
+      note.done = true;
+      hits += 1;
+      combo += 1;
+
+      const perfect = Math.abs(note.time - time) <= 0.05;
+
+      score += perfect ? 1000 : 700;
+      announce(perfect ? "PERFECT" : "GOOD");
+
+      flashPad(lane);
+
+      const frequencies = [261.63, 329.63, 392, 523.25];
+      tone(frequencies[lane], 0.09, "triangle");
+    } else {
+      combo = 0;
+      announce("EMPTY");
+    }
+
+    draw();
+  }
+
+  function pause() {
+    if (state === "playing") {
+      advance(performance.now());
+
+      if (state !== "playing") {
+        draw();
+        return;
+      }
+
+      setState("paused");
+      stopAudio();
+      clearFlashes();
+      draw();
+
+      $("overlayTitle").textContent = "잠깐, 숨 고르기";
+
+      $("overlayText").textContent =
+        "시간과 노트가 멈췄어요. 준비되면 이어가세요.";
+
+      $("start").textContent = "이어서 플레이 ▶";
+      $("overlay").hidden = false;
+    } else if (state === "paused") {
+      audioInit();
+
+      lastTime = performance.now();
+      setState("playing");
+
+      $("overlay").hidden = true;
+    }
+  }
+
+  $("start").onclick = () => {
+    if (state === "paused") {
+      pause();
+    } else {
+      start();
+    }
+  };
+
+  $("restart").onclick = start;
+  $("pause").onclick = pause;
+
+  document.addEventListener("keydown", (event) => {
+    const tagName = event.target?.tagName;
+
+    if (
+      ["INPUT", "TEXTAREA", "SELECT"].includes(tagName) ||
+      event.target?.isContentEditable
+    ) {
+      return;
+    }
+
+    const lane = KEY_CODES.indexOf(event.code);
+    const isPauseKey = event.code === "Space";
+
+    if (lane >= 0 || isPauseKey) {
+      event.preventDefault();
+
+      if (event.repeat) {
+        return;
+      }
+
+      if (lane >= 0) {
+        hit(lane);
+      } else {
+        pause();
+      }
+    }
+  });
+
+  pads.forEach((pad, lane) => {
+    pad.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      hit(lane);
+    });
+
+    // Enter로 버튼을 작동시키는 키보드 접근도 지원합니다.
+    pad.addEventListener("click", (event) => {
+      if (event.detail === 0) {
+        hit(lane);
+      }
+    });
+  });
+
+  window.addEventListener("blur", () => {
+    if (state === "playing") {
+      pause();
+    }
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden && state === "playing") {
+      pause();
+    }
+  });
+
+  window.addEventListener("resize", () => {
+    draw();
+  });
+
+  $("mode").onchange = () => {
+    data.mode = $("mode").value;
+    save();
+  };
+
+  $("sound").onchange = () => {
+    data.sound = $("sound").checked;
+    applySettings();
+
+    if (!data.sound) {
+      stopAudio();
+    } else {
+      audioInit();
+    }
+
+    save();
+  };
+
+  $("reduce").onchange = () => {
+    data.reduce = $("reduce").checked;
+    clearFlashes();
+    applySettings();
+    save();
+  };
+
+  function median(values) {
+    const sorted = [...values].sort((a, b) => a - b);
+
+    if (sorted.length === 0) {
+      return 0;
+    }
+
+    const middle = Math.floor(sorted.length / 2);
+
+    if (sorted.length % 2 === 1) {
+      return sorted[middle];
+    }
+
+    return (sorted[middle - 1] + sorted[middle]) / 2;
+  }
+
+  function renderRecords() {
+    const groups = ["A", "B"].map((groupMode) => {
+      return data.records
+        .filter((record) => record.mode === groupMode)
+        .slice(0, 10);
+    });
+
+    $("aCount").textContent = groups[0].length;
+    $("bCount").textContent = groups[1].length;
+
+    $("summary").replaceChildren();
+
+    groups.forEach((records, index) => {
+      const paragraph = document.createElement("div");
+      const hitValues = records.map((record) => record.hits);
+
+      const range = records.length
+        ? `${Math.min(...hitValues)}–${Math.max(...hitValues)}`
+        : "—";
+
+      const successCount = records.filter(
+        (record) => record.success
+      ).length;
+
+      paragraph.textContent =
+        `${index === 0 ? "A" : "B"} · ` +
+        `${records.length}/10회 · ` +
+        `적중 중앙값 ${median(hitValues)} · ` +
+        `범위 ${range} · 성공 ${successCount}회`;
+
+      $("summary").append(paragraph);
+    });
+
+    $("rows").replaceChildren();
+
+    data.records.forEach((record, index) => {
+      const row = document.createElement("tr");
+
+      const cells = [
+        index + 1,
+        `${record.mode} ±${record.mode === "A" ? 100 : 150}ms`,
+        record.score,
+        "30.0초",
+        `${record.hits}/${TOTAL_NOTES}`,
+        record.success ? "성공" : "실패",
+        record.cause
+      ];
+
+      for (const value of cells) {
+        const cell = document.createElement("td");
+        cell.textContent = value;
+        row.append(cell);
+      }
+
+      $("rows").append(row);
+    });
+
+    if (data.records.length === 0) {
+      const row = document.createElement("tr");
+      const cell = document.createElement("td");
+
+      cell.colSpan = 7;
+      cell.textContent =
+        "아직 완료한 플레이가 없습니다. 첫 판을 시작해 보세요.";
+
+      row.append(cell);
+      $("rows").append(row);
+    }
+  }
+
+  function openRecords() {
+    if (state === "playing") {
+      pause();
+    }
+
+    $("records").hidden = false;
+
+    $("records").scrollIntoView({
+      behavior: data.reduce ? "auto" : "smooth"
+    });
+  }
+
+  $("recordsToggle").onclick = openRecords;
+  $("openRecords").onclick = openRecords;
+
+  $("closeRecords").onclick = () => {
+    $("records").hidden = true;
+  };
+
+  $("choice").value = data.choice;
+  $("reason").value = data.reason;
+
+  $("saveDecision").onclick = () => {
+    data.choice = $("choice").value;
+    data.reason = $("reason").value.slice(0, 2000);
+
+    const saved = save();
+
+    $("decisionStatus").textContent = saved
+      ? "최종 판단을 저장했습니다."
+      : "이번 방문 동안만 판단을 보관합니다. 기록을 내려받으세요.";
+  };
+
+  $("export").onclick = () => {
+    const exportData = {
+      game: "PULSE / 30",
+      ...data
+    };
+
+    const blob = new Blob(
+      [JSON.stringify(exportData, null, 2)],
+      { type: "application/json;charset=utf-8" }
+    );
+
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+
+    anchor.href = url;
+    anchor.download = "pulse30-records.json";
+
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 1000);
+  };
+
+  $("reset").onclick = () => {
+    if (state === "playing") {
+      pause();
+    }
+
+    const accepted = window.confirm(
+      "최고 점수, 플레이 기록, 설정과 최종 판단을 모두 초기화할까요?"
+    );
+
+    if (!accepted) {
+      return;
+    }
+
+    data = defaults();
+    const saved = save();
+
+    resetRound();
+    mode = data.mode;
+    setState("ready");
+
+    $("overlayTitle").textContent = "리듬을 시작할 시간";
+
+    $("overlayText").textContent =
+      "D · F · J · K 를 판정선에 맞춰 누르세요.";
+
+    $("start").textContent = "플레이 시작 ▶";
+    $("overlay").hidden = false;
+
+    $("choice").value = "";
+    $("reason").value = "";
+
+    applySettings();
+    renderRecords();
+
+    $("decisionStatus").textContent = saved
+      ? "저장 기록과 현재 판을 초기화했습니다."
+      : "현재 화면은 초기화했지만 저장 공간에는 반영하지 못했습니다.";
+  };
+
+  $("selftest").onclick = () => {
+    if (["playing", "paused"].includes(state)) {
+      $("testResult").textContent =
+        "진행 중인 판을 끝낸 뒤 검사하세요.";
+
+      return;
+    }
+
+    const results = [];
+
+    try {
+      if (decode("").best !== 0) {
+        throw new Error("빈 저장 기본값 오류");
+      }
+
+      results.push("PASS · 빈 저장 기본값");
+
+      const brokenValues = [
+        "{broken",
+        "null",
+        '{"version":1}',
+        '{"version":99}'
+      ];
+
+      for (const raw of brokenValues) {
+        let caught = false;
+
+        try {
+          decode(raw);
+        } catch {
+          caught = true;
+        }
+
+        if (!caught) {
+          throw new Error("손상 저장 감지 실패");
+        }
+      }
+
+      results.push("PASS · 손상 저장 감지");
+
+      start();
+
+      const inputStart = performance.now();
+
+      for (let index = 0; index < 10; index += 1) {
+        document.dispatchEvent(
+          new KeyboardEvent("keydown", {
+            code: "KeyD",
+            bubbles: true
+          })
+        );
+      }
+
+      const inputElapsed = performance.now() - inputStart;
+
+      if (inputs !== 10) {
+        throw new Error(`입력 처리 수: ${inputs}`);
+      }
+
+      if (inputElapsed > 1000) {
+        throw new Error("입력 검사 시간이 1초를 초과했습니다.");
+      }
+
+      results.push(
+        "PASS · 1초 내 입력 이벤트 10건 → 핵심 입력 처리 10회"
+      );
+
+      document.dispatchEvent(
+        new KeyboardEvent("keydown", {
+          code: "KeyD",
+          repeat: true,
+          bubbles: true
+        })
+      );
+
+      if (inputs !== 10) {
+        throw new Error("키 자동 반복 제외 실패");
+      }
+
+      results.push("PASS · 키 자동 반복 제외");
+
+      pause();
+
+      const pausedTime = time;
+      advance(performance.now() + 600000);
+
+      if (time !== pausedTime) {
+        throw new Error("일시정지 중 시간이 진행되었습니다.");
+      }
+
+      results.push(
+        "PASS · 일시정지 시간 고정 — 모의 시각 검사"
+      );
+
+      results.push(
+        "미검사 · 실제 10분 실행 / 브라우저 콘솔 / 두 해상도 / 시크릿 접근"
+      );
+    } catch (error) {
+      results.push(`FAIL · ${error.message}`);
+    } finally {
+      resetRound();
+      setState("ready");
+
+      $("overlayTitle").textContent = "검사 종료";
+
+      $("overlayText").textContent =
+        "검사 결과는 기록 화면에서 확인하세요. 검사 플레이는 저장하지 않습니다.";
+
+      $("start").textContent = "플레이 시작 ▶";
+      $("overlay").hidden = false;
+
+      $("testResult").textContent = results.join("\n");
+    }
+  };
+
+  // 지원하는 브라우저에서만 현재 게임 상태를 읽는 도구를 등록합니다.
+  const modelContext = document.modelContext;
+
+  if (modelContext?.registerTool) {
+    try {
+      Promise.resolve(
+        modelContext.registerTool({
+          name: "read_rhythm_session",
+
+          description:
+            "현재 리듬게임 상태와 완료 기록 수를 읽습니다.",
+
+          inputSchema: {
+            type: "object",
+            properties: {},
+            additionalProperties: false
+          },
+
+          annotations: {
+            readOnlyHint: true
+          },
+
+          execute: (argument) => {
+            if (
+              !argument ||
+              typeof argument !== "object" ||
+              Array.isArray(argument) ||
+              Object.keys(argument).length > 0
+            ) {
+              throw new Error("입력은 빈 객체여야 합니다.");
+            }
+
+            return {
+              state,
+              time,
+              score,
+              hits,
+              mode,
+              records: data.records.length
+            };
+          }
+        })
+      ).catch(() => {
+        // 선택 기능의 실패는 게임 실행을 중단하지 않습니다.
+      });
+    } catch {
+      // 해당 기능을 지원하지 않는 환경에서도 게임은 실행됩니다.
+    }
+  }
+
+  applySettings();
+  renderRecords();
+  metrics();
+  requestAnimationFrame(frame);
+})();
