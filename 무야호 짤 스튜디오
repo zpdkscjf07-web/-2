@@ -1,0 +1,2526 @@
+① index.html — 편집 화면
+<!doctype html>
+<html lang="ko" translate="no">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="google" content="notranslate">
+  <meta
+    name="description"
+    content="무야호 사진에 나만의 문구를 넣고 PNG로 저장하세요. 이미지 편집, 템플릿 관리와 JSON 백업."
+  >
+
+  <title>무야호! 짤 스튜디오</title>
+
+  <link
+    rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23f4ca46'/%3E%3Ctext x='16' y='23' text-anchor='middle' font-size='24' font-weight='bold'%3EM%3C/text%3E%3C/svg%3E"
+  >
+
+  <link rel="stylesheet" href="style.css">
+  <script src="core.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+
+<body>
+  <header>
+    <a class="brand" href="./">
+      <b>M!</b>
+      <span>무야호! <em>짤 스튜디오</em></span>
+    </a>
+
+    <nav>
+      <button id="templatesTab">
+        내 템플릿 <span id="count">0</span>
+      </button>
+
+      <button id="download" class="primary">
+        PNG 내려받기 ↓
+      </button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="heading">
+      <div>
+        <span class="eyebrow">MAKE IT YOUR MOMENT</span>
+        <h1>이 순간, 무야호!</h1>
+        <p>사진 한 장에 내 상황을 더하면, 오늘의 짤 완성.</p>
+      </div>
+
+      <span class="local-note">
+        내 사진과 템플릿은 이 브라우저에만 저장돼요.
+      </span>
+    </section>
+
+    <div class="workspace">
+      <aside class="panel editor">
+        <div class="panel-title">
+          <span>01</span>
+          <h2>사진 & 문구</h2>
+        </div>
+
+        <label class="upload" for="imageFile">
+          <strong>＋ 내 사진 불러오기</strong>
+          <small>PNG · JPEG / 최대 10MB</small>
+        </label>
+
+        <input
+          type="file"
+          id="imageFile"
+          accept="image/png,image/jpeg"
+          hidden
+        >
+
+        <div class="image-actions">
+          <button id="defaultImage">무야호 원본</button>
+
+          <label for="fit">사진 맞춤</label>
+
+          <select id="fit">
+            <option value="contain">전체 보이기</option>
+            <option value="cover">꽉 채우기</option>
+          </select>
+        </div>
+
+        <div
+          class="text-tabs"
+          role="group"
+          aria-label="편집할 문구"
+        >
+          <button
+            data-layer="top"
+            class="active"
+            aria-pressed="true"
+          >
+            위 문구
+          </button>
+
+          <button
+            data-layer="bottom"
+            aria-pressed="false"
+          >
+            아래 문구
+          </button>
+        </div>
+
+        <label for="caption">어떤 순간인가요?</label>
+
+        <textarea
+          id="caption"
+          maxlength="2000"
+          rows="3"
+        ></textarea>
+
+        <div class="caption-meta">
+          <span>줄바꿈·이모지 사용 가능</span>
+          <span id="chars">0 / 2000</span>
+        </div>
+
+        <div class="slider-heading">
+          <label for="fontSize">글자 크기</label>
+          <output id="sizeValue">64</output>
+        </div>
+
+        <input
+          id="fontSize"
+          type="range"
+          min="20"
+          max="160"
+          step="1"
+        >
+
+        <div class="slider-heading">
+          <label for="textX">가로 위치</label>
+          <output id="xValue">50%</output>
+        </div>
+
+        <input
+          id="textX"
+          type="range"
+          min="15"
+          max="85"
+        >
+
+        <div class="slider-heading">
+          <label for="textY">세로 위치</label>
+          <output id="yValue">7%</output>
+        </div>
+
+        <input
+          id="textY"
+          type="range"
+          min="0"
+          max="85"
+        >
+
+        <div class="color-row">
+          <label for="textColor">
+            글자 색
+            <input id="textColor" type="color">
+          </label>
+
+          <label for="bgColor">
+            배경 색
+            <input id="bgColor" type="color">
+          </label>
+        </div>
+
+        <label class="check">
+          <input id="outline" type="checkbox" checked>
+          글자 테두리
+        </label>
+
+        <p class="fine">
+          긴 문구는 영역에 맞춰 자동으로 작아집니다.
+        </p>
+      </aside>
+
+      <section class="preview-panel">
+        <div class="preview-top">
+          <span class="eyebrow">LIVE PREVIEW</span>
+          <span id="dimensions">1080 × 1080</span>
+        </div>
+
+        <div class="canvas-stage">
+          <canvas
+            id="canvas"
+            width="1080"
+            height="1080"
+            aria-label="편집 이미지 미리보기"
+          ></canvas>
+        </div>
+
+        <div
+          class="ratio-tabs"
+          role="group"
+          aria-label="화면 비율"
+        >
+          <button
+            data-ratio="1:1"
+            class="active"
+            aria-pressed="true"
+          >
+            <i class="r-square"></i>
+            1:1 <small>정사각형</small>
+          </button>
+
+          <button
+            data-ratio="4:5"
+            aria-pressed="false"
+          >
+            <i class="r-portrait"></i>
+            4:5 <small>게시물</small>
+          </button>
+
+          <button
+            data-ratio="9:16"
+            aria-pressed="false"
+          >
+            <i class="r-story"></i>
+            9:16 <small>스토리</small>
+          </button>
+        </div>
+
+        <p id="notice" role="status">
+          이미지를 준비하고 있어요.
+        </p>
+
+        <p id="fitNotice" class="fine"></p>
+      </section>
+
+      <aside class="panel inspiration">
+        <div class="panel-title">
+          <span>02</span>
+          <h2>바로 써먹는 문구</h2>
+        </div>
+
+        <p class="muted">
+          지금 내 상황에 맞는 한 줄을 골라봐요.
+        </p>
+
+        <button class="preset" data-preset="0">
+          <span>⌘ 코딩하는 날</span>
+          <strong>
+            오류 30개 잡고<br>
+            드디어 실행됐을 때
+          </strong>
+          <small>문구 적용 ↗</small>
+        </button>
+
+        <button class="preset" data-preset="1">
+          <span>☀ 퇴근하는 날</span>
+          <strong>
+            퇴근 1분 전<br>
+            추가 업무가 없을 때
+          </strong>
+          <small>문구 적용 ↗</small>
+        </button>
+
+        <button class="preset" data-preset="2">
+          <span>✓ 해낸 날</span>
+          <strong>
+            미루던 일<br>
+            드디어 끝냈을 때
+          </strong>
+          <small>문구 적용 ↗</small>
+        </button>
+
+        <div class="save-box">
+          <h3>이 조합, 저장해둘까요?</h3>
+
+          <label for="templateName" class="sr-only">
+            템플릿 이름
+          </label>
+
+          <input
+            id="templateName"
+            maxlength="60"
+            placeholder="예: 코딩 성공 무야호"
+          >
+
+          <button id="saveNew">
+            내 템플릿에 저장 ＋
+          </button>
+
+          <p>사진·문구·색·위치를 함께 기억해요.</p>
+        </div>
+      </aside>
+    </div>
+
+    <section id="templateSection" class="lower" hidden>
+      <div class="section-top">
+        <div>
+          <span class="eyebrow">SAVED BY YOU</span>
+          <h2>내 템플릿</h2>
+        </div>
+
+        <div class="actions">
+          <button id="exportJson">JSON 내보내기</button>
+          <button id="importJson">JSON 가져오기</button>
+
+          <input
+            id="jsonFile"
+            type="file"
+            accept=".json,application/json"
+            hidden
+          >
+        </div>
+      </div>
+
+      <p class="muted">
+        불러온 템플릿을 편집한 뒤 ‘수정 저장’을 누르세요.
+        새 이름으로 추가하려면 위의 저장 버튼을 사용하세요.
+      </p>
+
+      <div id="templateList"></div>
+    </section>
+
+    <section class="details-row">
+      <details>
+        <summary>이미지 출처 기록</summary>
+
+        <p>
+          기본 사진: 사용자가 제공한 「무한도전」 방송 캡처.
+          원본 출처 URL과 사용 허가 근거는 아직 제공되지 않았습니다.
+          다운로드한 이미지가 자동으로 본인 제작이 되는 것은 아닙니다.
+        </p>
+
+        <label for="origin">
+          원본 출처 URL 또는 본인 제작 설명
+        </label>
+
+        <input
+          id="origin"
+          maxlength="500"
+          placeholder="원본 URL 또는 직접 촬영·제작한 설명"
+        >
+
+        <label for="license">사용 허가 근거</label>
+
+        <input
+          id="license"
+          maxlength="300"
+          placeholder="라이선스명·이용약관·수업 제공 표기 등"
+        >
+
+        <p>
+          기록은 템플릿 JSON에 함께 저장됩니다.
+          원본의 위치 정보 등 메타데이터는 이미지를 다시 그려 제거합니다.
+        </p>
+      </details>
+
+      <details>
+        <summary>완성 예시 3개</summary>
+
+        <p>
+          서로 다른 문구·비율의 PNG 예시입니다.
+          기본 방송 캡처의 사용 허가 근거는 확인 전입니다.
+        </p>
+
+        <div class="samples">
+          <a href="sample-square.png" target="_blank">
+            1:1 · 코딩 성공 ↗
+          </a>
+
+          <a href="sample-feed.png" target="_blank">
+            4:5 · 퇴근 성공 ↗
+          </a>
+
+          <a href="sample-story.png" target="_blank">
+            9:16 · 할 일 완료 ↗
+          </a>
+        </div>
+      </details>
+
+      <details>
+        <summary>검사와 제출 안내</summary>
+
+        <p>
+          <a href="checks.html" target="_blank">
+            12개 입력 검사 결과 보기 ↗
+          </a>
+          ·
+          <a href="source.html" target="_blank">
+            전체 소스 보기 ↗
+          </a>
+          ·
+          <a href="source.zip" download>
+            소스 ZIP 받기 ↓
+          </a>
+        </p>
+
+        <p>
+          <b>어디로 가나요:</b>
+          이 편집기 주소를 새 시크릿 창에서 엽니다.<br>
+
+          <b>무엇을 하나요:</b>
+          ① 이미지 선택 ② 문구·비율 편집 ③ PNG 내려받기.<br>
+
+          <b>무엇이 보이면 통과:</b>
+          미리보기와 파일의 배치가 같고,
+          저장한 템플릿이 새로고침 뒤 유지됩니다.<br>
+
+          <b>안 될 때:</b>
+          잘못된 이미지·JSON의 거부 이유가 표시되고
+          기존 작업은 유지됩니다.
+        </p>
+
+        <p>
+          <b>AI에게 맡긴 일:</b>
+          편집기·내려받기·템플릿 관리·검증 구현.<br>
+
+          <b>직접 판단한 일:</b>
+          무야호 소재 선택과 사용할 이미지 제공.<br>
+
+          <b>AI 제안을 따르지 않은 일:</b>
+          현재 확인된 사항 없음.
+          초기 구현을 확인하고 문구·배치를 직접 조정할 예정입니다.
+        </p>
+      </details>
+    </section>
+
+    <footer>
+      <span>무야호! 짤 스튜디오</span>
+      <span>이미지를 서버로 업로드하지 않습니다.</span>
+    </footer>
+  </main>
+</body>
+</html>
+
+② style.css — 디자인
+@font-face {
+  font-family: "Meme Sans";
+  src: url("meme-font.woff") format("woff");
+  font-weight: 900;
+  font-display: block;
+}
+
+:root {
+  --bg: #f5f4ef;
+  --ink: #252522;
+  --muted: #7b7b72;
+  --line: #e4e2d9;
+  --yellow: #f4ca46;
+  --white: #fff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font: 15px/1.6 Arial, "Noto Sans KR", sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 14px;
+  background: white;
+  color: var(--ink);
+}
+
+button:hover {
+  border-color: #8a897f;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 3px solid #baa023;
+  outline-offset: 3px;
+}
+
+a {
+  color: inherit;
+}
+
+header {
+  height: 83px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  padding: 0 38px;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  text-decoration: none;
+  font-size: 21px;
+  font-weight: 900;
+  letter-spacing: -1px;
+}
+
+.brand > b {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  background: var(--yellow);
+  font: bold 25px Arial;
+  transform: rotate(-6deg);
+}
+
+.brand em {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+nav {
+  display: flex;
+  gap: 10px;
+}
+
+.primary {
+  background: var(--yellow);
+  border-color: var(--yellow);
+  font-weight: 700;
+}
+
+#count {
+  background: #efeee8;
+  padding: 2px 6px;
+  border-radius: 5px;
+  margin-left: 6px;
+  font-size: 12px;
+}
+
+main {
+  max-width: 1560px;
+  padding: 0 38px;
+  margin: auto;
+}
+
+.heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  padding: 28px 0 25px;
+}
+
+.eyebrow {
+  font: 11px monospace;
+  letter-spacing: 2px;
+  color: var(--muted);
+}
+
+h1 {
+  font-size: 30px;
+  letter-spacing: -1.5px;
+  margin: 5px 0;
+}
+
+.heading p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.local-note {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: 286px minmax(300px, 1fr) 258px;
+  gap: 24px;
+  align-items: start;
+}
+
+.panel {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  padding: 20px;
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.panel-title > span {
+  color: #aaa89d;
+  font: 12px monospace;
+}
+
+h2 {
+  font-size: 17px;
+  margin: 0;
+}
+
+label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 10px 0 7px;
+}
+
+.upload {
+  border: 1px dashed #c7c3b5;
+  background: #faf9f4;
+  border-radius: 9px;
+  text-align: center;
+  padding: 16px 8px;
+  cursor: pointer;
+}
+
+.upload strong {
+  display: block;
+  font-size: 14px;
+}
+
+.upload small {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.image-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0 20px;
+}
+
+.image-actions button {
+  padding: 5px 7px;
+  font-size: 12px;
+}
+
+.image-actions label {
+  font-size: 12px;
+  margin: 0 0 0 auto;
+  white-space: nowrap;
+}
+
+.image-actions select {
+  font-size: 12px;
+  width: auto;
+  padding: 5px;
+}
+
+select,
+input[type="text"],
+input:not([type]),
+textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 10px;
+  background: #fff;
+  color: var(--ink);
+}
+
+.text-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #f2f1eb;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.text-tabs button {
+  border: 0;
+  background: none;
+  padding: 6px;
+  font-size: 14px;
+}
+
+.text-tabs button.active {
+  background: white;
+  box-shadow: 0 1px 4px #0001;
+  font-weight: bold;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 90px;
+  font-size: 15px;
+}
+
+.caption-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 15px;
+}
+
+.slider-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.slider-heading label {
+  margin: 7px 0;
+}
+
+.slider-heading output {
+  font: 12px monospace;
+  color: var(--muted);
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: #373a31;
+  height: 15px;
+  margin: 0 0 7px;
+}
+
+.color-row {
+  display: flex;
+  gap: 22px;
+  border-top: 1px solid var(--line);
+  margin-top: 12px;
+  padding-top: 4px;
+}
+
+.color-row label {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 13px;
+}
+
+input[type="color"] {
+  width: 28px;
+  height: 28px;
+  padding: 1px;
+  border: 1px solid var(--line);
+  background: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.check input {
+  accent-color: #373a31;
+}
+
+.fine {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 7px 0 0;
+}
+
+.preview-panel {
+  min-width: 0;
+}
+
+.preview-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 4px 12px;
+}
+
+.preview-top > span:last-child {
+  font: 12px monospace;
+  color: var(--muted);
+}
+
+.canvas-stage {
+  height: 480px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 22px;
+  background-color: #eae8df;
+  background-image: radial-gradient(
+    #c9c6bb 0.8px,
+    transparent 0.8px
+  );
+  background-size: 12px 12px;
+}
+
+canvas {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  box-shadow: 0 8px 30px #0002;
+}
+
+.ratio-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 17px 0 0;
+}
+
+.ratio-tabs button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  background: transparent;
+}
+
+.ratio-tabs button.active {
+  background: #fff8d9;
+  border-color: #d1b34b;
+}
+
+.ratio-tabs small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.ratio-tabs i {
+  border: 1.5px solid currentColor;
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+}
+
+.ratio-tabs .r-portrait {
+  height: 17px;
+}
+
+.ratio-tabs .r-story {
+  height: 20px;
+  width: 11px;
+}
+
+#notice {
+  font-size: 13px;
+  text-align: center;
+  margin: 12px 0 0;
+  color: #515747;
+}
+
+#notice.error {
+  color: #a53528;
+}
+
+#fitNotice {
+  text-align: center;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.inspiration > .muted {
+  margin: 0 0 16px;
+}
+
+.preset {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 14px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  background: #faf9f4;
+}
+
+.preset:nth-of-type(2) {
+  background: #f2f4ee;
+}
+
+.preset:nth-of-type(3) {
+  background: #f3f2f7;
+}
+
+.preset span {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.preset strong {
+  display: block;
+  font-size: 16px;
+  line-height: 1.55;
+  margin: 8px 0;
+  letter-spacing: -0.4px;
+}
+
+.preset small {
+  font-size: 11px;
+  color: #77786c;
+}
+
+.save-box {
+  border-top: 1px solid var(--line);
+  padding-top: 15px;
+  margin-top: 20px;
+}
+
+.save-box h3 {
+  font-size: 14px;
+  margin: 0 0 10px;
+}
+
+.save-box input {
+  font-size: 13px;
+}
+
+.save-box button {
+  width: 100%;
+  background: #2f342c;
+  color: white;
+  border: 0;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.save-box p {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 0;
+}
+
+.lower {
+  border-top: 1px solid var(--line);
+  margin-top: 30px;
+  padding: 25px 0;
+}
+
+.section-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-top h2 {
+  font-size: 23px;
+  margin-top: 4px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.actions button {
+  font-size: 13px;
+}
+
+#templateList {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(230px, 1fr)
+  );
+  gap: 14px;
+}
+
+.template-card {
+  padding: 17px;
+  border: 1px solid var(--line);
+  background: white;
+  border-radius: 10px;
+}
+
+.template-card.selected {
+  border-color: #9d862c;
+}
+
+.template-card h3 {
+  margin: 0;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.template-card p {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: pre-wrap;
+  max-height: 58px;
+  overflow: hidden;
+}
+
+.template-card .actions {
+  flex-wrap: wrap;
+}
+
+.template-card button {
+  font-size: 12px;
+  padding: 6px 8px;
+}
+
+.empty {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.details-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 28px 0;
+}
+
+.details-row details {
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #fafaf7;
+  padding: 13px;
+  font-size: 13px;
+  align-self: start;
+}
+
+.details-row p {
+  color: #77776d;
+}
+
+summary {
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.samples {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+footer {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid var(--line);
+  padding: 20px 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+@media (min-width: 1550px) {
+  .canvas-stage {
+    height: 560px;
+  }
+}
+
+@media (max-width: 1150px) {
+  main {
+    padding: 0 24px;
+  }
+
+  .workspace {
+    grid-template-columns: 260px minmax(300px, 1fr);
+    gap: 20px;
+  }
+
+  .inspiration {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .inspiration .panel-title,
+  .inspiration > .muted {
+    display: none;
+  }
+
+  .preset {
+    margin: 0;
+  }
+
+  .save-box {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
+
+  .canvas-stage {
+    height: 490px;
+  }
+
+  .local-note {
+    display: none;
+  }
+
+  .details-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  header {
+    padding: 0 16px;
+    height: 74px;
+  }
+
+  .brand {
+    font-size: 17px;
+  }
+
+  .brand em {
+    display: none;
+  }
+
+  nav button {
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  .brand > b {
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
+  }
+
+  main {
+    padding: 0 16px;
+  }
+
+  .heading {
+    padding: 22px 0;
+  }
+
+  h1 {
+    font-size: 27px;
+  }
+
+  .workspace {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .editor,
+  .inspiration,
+  .preview-panel {
+    width: 100%;
+  }
+
+  .preview-panel {
+    order: -1;
+  }
+
+  .canvas-stage {
+    height: 380px;
+    padding: 15px;
+  }
+
+  .editor {
+    padding: 17px;
+  }
+
+  .inspiration {
+    display: block;
+  }
+
+  .inspiration .panel-title {
+    display: flex;
+  }
+
+  .preset {
+    margin-bottom: 10px;
+  }
+
+  .ratio-tabs {
+    gap: 7px;
+  }
+
+  .ratio-tabs small {
+    display: none;
+  }
+
+  .details-row {
+    margin-top: 20px;
+  }
+
+  .section-top {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  footer {
+    gap: 12px;
+    font-size: 11px;
+  }
+}
+
+③ core.js — 이미지 합성·문구 배치·데이터 검증
+(function (root) {
+  "use strict";
+
+  const RATIOS = {
+    "1:1": [1080, 1080],
+    "4:5": [1080, 1350],
+    "9:16": [1080, 1920]
+  };
+
+  const presets = [
+    "오류 30개 잡고\n드디어 실행됐을 때",
+    "퇴근 1분 전\n추가 업무가 없을 때",
+    "미루던 일\n드디어 끝냈을 때"
+  ];
+
+  const clone = (value) => {
+    return JSON.parse(JSON.stringify(value));
+  };
+
+  function initial() {
+    return {
+      ratio: "1:1",
+      fit: "contain",
+      bg: "#f6eccc",
+      outline: true,
+      image: "builtin:muyaho",
+
+      origin:
+        "사용자 제공 무한도전 방송 캡처 · 원본 URL 미제공",
+
+      license: "사용 허가 근거 미확인",
+
+      top: {
+        text: presets[0],
+        size: 64,
+        color: "#ffffff",
+        x: 50,
+        y: 5
+      },
+
+      bottom: {
+        text: "",
+        size: 72,
+        color: "#ffffff",
+        x: 50,
+        y: 76
+      }
+    };
+  }
+
+  const plain = (value) => {
+    return (
+      value !== null &&
+      typeof value === "object" &&
+      !Array.isArray(value)
+    );
+  };
+
+  const finite = (value, min, max) => {
+    return (
+      typeof value === "number" &&
+      Number.isFinite(value) &&
+      value >= min &&
+      value <= max
+    );
+  };
+
+  function validateModel(model) {
+    if (
+      !plain(model) ||
+      !Object.hasOwn(RATIOS, model.ratio) ||
+      !["cover", "contain"].includes(model.fit) ||
+      !/^#[0-9a-f]{6}$/i.test(model.bg) ||
+      typeof model.outline !== "boolean" ||
+      typeof model.image !== "string" ||
+      model.image.length > 5500000 ||
+      !(
+        model.image === "builtin:muyaho" ||
+        /^data:image\/(png|jpeg);base64,[A-Za-z0-9+/]+={0,2}$/.test(
+          model.image
+        )
+      ) ||
+      typeof model.origin !== "string" ||
+      model.origin.length > 500 ||
+      typeof model.license !== "string" ||
+      model.license.length > 300
+    ) {
+      throw Error(
+        "필수 항목 또는 이미지·배경 설정이 올바르지 않습니다."
+      );
+    }
+
+    for (const key of ["top", "bottom"]) {
+      const text = model[key];
+
+      if (
+        !plain(text) ||
+        typeof text.text !== "string" ||
+        text.text.length > 2000 ||
+        !finite(text.size, 20, 160) ||
+        !finite(text.x, 15, 85) ||
+        !finite(text.y, 0, 85) ||
+        !/^#[0-9a-f]{6}$/i.test(text.color)
+      ) {
+        throw Error(
+          "문구·크기·위치·색 설정이 올바르지 않습니다."
+        );
+      }
+    }
+
+    return {
+      ratio: model.ratio,
+      fit: model.fit,
+      bg: model.bg,
+      outline: model.outline,
+      image: model.image,
+      origin: model.origin,
+      license: model.license,
+      top: { ...model.top },
+      bottom: { ...model.bottom }
+    };
+  }
+
+  function parseBackup(raw) {
+    let data;
+
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      throw Error(
+        "JSON 문법이 손상되었습니다. 기존 템플릿은 유지됩니다."
+      );
+    }
+
+    if (
+      !plain(data) ||
+      data.version !== 1 ||
+      !Array.isArray(data.templates) ||
+      data.templates.length > 20
+    ) {
+      throw Error(
+        "version: 1과 templates 배열(최대 20개)이 필요합니다."
+      );
+    }
+
+    const ids = new Set();
+
+    return data.templates.map((template) => {
+      if (
+        !plain(template) ||
+        typeof template.id !== "string" ||
+        !template.id ||
+        template.id.length > 100 ||
+        ids.has(template.id) ||
+        typeof template.name !== "string" ||
+        !template.name.trim() ||
+        template.name.length > 60
+      ) {
+        throw Error(
+          "템플릿 ID 또는 이름이 올바르지 않습니다."
+        );
+      }
+
+      ids.add(template.id);
+
+      return {
+        id: template.id,
+        name: template.name,
+        model: validateModel(template.model)
+      };
+    });
+  }
+
+  const segmenter =
+    typeof Intl.Segmenter === "function"
+      ? new Intl.Segmenter("ko", {
+          granularity: "grapheme"
+        })
+      : null;
+
+  function graphemes(text) {
+    if (segmenter) {
+      return Array.from(
+        segmenter.segment(text),
+        (value) => value.segment
+      );
+    }
+
+    return Array.from(text);
+  }
+
+  function wrapText(context, text, width) {
+    const lines = [];
+
+    for (const paragraph of text.split("\n")) {
+      let line = "";
+
+      for (const character of graphemes(paragraph)) {
+        if (
+          line &&
+          context.measureText(line + character).width > width
+        ) {
+          lines.push(line);
+          line = character;
+        } else {
+          line += character;
+        }
+      }
+
+      lines.push(line);
+    }
+
+    return lines;
+  }
+
+  function render(canvas, model, image) {
+    validateModel(model);
+
+    const [width, height] = RATIOS[model.ratio];
+
+    if (canvas.width !== width) {
+      canvas.width = width;
+    }
+
+    if (canvas.height !== height) {
+      canvas.height = height;
+    }
+
+    const context = canvas.getContext("2d");
+
+    context.clearRect(0, 0, width, height);
+    context.fillStyle = model.bg;
+    context.fillRect(0, 0, width, height);
+
+    const imageWidth = image.naturalWidth || image.width;
+    const imageHeight = image.naturalHeight || image.height;
+
+    const scale =
+      model.fit === "cover"
+        ? Math.max(
+            width / imageWidth,
+            height / imageHeight
+          )
+        : Math.min(
+            width / imageWidth,
+            height / imageHeight
+          );
+
+    context.drawImage(
+      image,
+      (width - imageWidth * scale) / 2,
+      (height - imageHeight * scale) / 2,
+      imageWidth * scale,
+      imageHeight * scale
+    );
+
+    const layouts = [];
+
+    for (const key of ["top", "bottom"]) {
+      const text = model[key];
+
+      if (!text.text) {
+        layouts.push({
+          key,
+          lines: [],
+          size: text.size
+        });
+
+        continue;
+      }
+
+      const x = (width * text.x) / 100;
+      const top = (height * text.y) / 100 + 8;
+
+      const availableWidth = Math.max(
+        80,
+        2 * Math.min(x, width - x) - 48
+      );
+
+      const availableHeight = Math.max(
+        20,
+        Math.min(
+          height * 0.36,
+          height - top - 16
+        )
+      );
+
+      let size = text.size;
+      let lines = [];
+
+      for (; size >= 2; size--) {
+        context.font =
+          `900 ${size}px "Meme Sans", ` +
+          `"Malgun Gothic", Arial, sans-serif`;
+
+        lines = wrapText(
+          context,
+          text.text,
+          availableWidth
+        );
+
+        const fitsHeight =
+          lines.length * size * 1.3 <= availableHeight;
+
+        const fitsWidth = lines.every((line) => {
+          return (
+            context.measureText(line).width <= availableWidth
+          );
+        });
+
+        if (fitsHeight && fitsWidth) {
+          break;
+        }
+      }
+
+      size = Math.max(2, size);
+
+      if (
+        lines.length * size * 1.3 > availableHeight
+      ) {
+        size =
+          availableHeight / (lines.length * 1.3);
+      }
+
+      context.font =
+        `900 ${size}px "Meme Sans", ` +
+        `"Malgun Gothic", Arial, sans-serif`;
+
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      context.lineJoin = "round";
+      context.strokeStyle = "#161616";
+      context.lineWidth = Math.max(1, size * 0.085);
+      context.fillStyle = text.color;
+
+      lines.forEach((line, index) => {
+        const y =
+          top +
+          size * 0.8 +
+          index * size * 1.3;
+
+        if (model.outline) {
+          context.strokeText(line, x, y);
+        }
+
+        context.fillText(line, x, y);
+      });
+
+      layouts.push({
+        key,
+        size,
+        lines,
+        x,
+        top,
+        width: availableWidth,
+        height: availableHeight
+      });
+    }
+
+    return layouts;
+  }
+
+  const api = {
+    RATIOS,
+    presets,
+    clone,
+    initial,
+    validateModel,
+    parseBackup,
+    wrapText,
+    render
+  };
+
+  root.MemeCore = api;
+
+  if (typeof module !== "undefined") {
+    module.exports = api;
+  }
+})(typeof globalThis !== "undefined" ? globalThis : this);
+
+④ app.js — 편집·다운로드·템플릿 저장과 복원
+"use strict";
+
+(async () => {
+  const $ = (id) => document.getElementById(id);
+  const C = MemeCore;
+  const KEY = "muyaho.templates.v1";
+
+  let model = C.initial();
+  let layer = "top";
+  let selected = null;
+  let templates = [];
+  let image = null;
+  let loading = 0;
+  let request = 0;
+  let ready = false;
+
+  const canvas = $("canvas");
+
+  function notice(text, error = false) {
+    $("notice").textContent = text;
+    $("notice").classList.toggle("error", error);
+  }
+
+  function buttons() {
+    for (const id of [
+      "download",
+      "saveNew",
+      "exportJson",
+      "importJson"
+    ]) {
+      $(id).disabled = !ready || loading > 0;
+    }
+
+    document
+      .querySelectorAll("#templateList button")
+      .forEach((button) => {
+        button.disabled = loading > 0;
+      });
+  }
+
+  function uuid() {
+    if (typeof crypto.randomUUID === "function") {
+      return crypto.randomUUID();
+    }
+
+    return (
+      Date.now().toString(36) +
+      "-" +
+      Math.random().toString(36).slice(2)
+    );
+  }
+
+  function loadImage(source) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+
+      img.onload = () => resolve(img);
+
+      img.onerror = () => {
+        reject(
+          Error(
+            "이미지를 해석할 수 없습니다. 기존 작업은 유지됩니다."
+          )
+        );
+      };
+
+      img.src =
+        source === "builtin:muyaho"
+          ? "muyaho.png"
+          : source;
+    });
+  }
+
+  function normalized(img) {
+    const width = img.naturalWidth;
+    const height = img.naturalHeight;
+
+    if (
+      !width ||
+      !height ||
+      width * height > 40000000
+    ) {
+      throw Error(
+        "이미지는 4천만 화소 이하여야 합니다."
+      );
+    }
+
+    const scale = Math.min(
+      1,
+      1600 / Math.max(width, height)
+    );
+
+    const temp = document.createElement("canvas");
+
+    temp.width = Math.round(width * scale);
+    temp.height = Math.round(height * scale);
+
+    temp.getContext("2d").drawImage(
+      img,
+      0,
+      0,
+      temp.width,
+      temp.height
+    );
+
+    const url = temp.toDataURL("image/png");
+
+    if (url.length > 5500000) {
+      throw Error(
+        "이미지 데이터가 너무 큽니다. 더 작은 이미지를 사용하세요."
+      );
+    }
+
+    return url;
+  }
+
+  async function normalizeSource(source) {
+    const img = await loadImage(source);
+
+    if (source === "builtin:muyaho") {
+      return {
+        src: source,
+        im: img
+      };
+    }
+
+    const clean = normalized(img);
+
+    return {
+      src: clean,
+      im: await loadImage(clean)
+    };
+  }
+
+  function paint() {
+    if (!image) {
+      return;
+    }
+
+    const layouts = C.render(canvas, model, image);
+    const [width, height] = C.RATIOS[model.ratio];
+
+    $("dimensions").textContent =
+      `${width} × ${height}`;
+
+    const reduced = layouts.some((layout) => {
+      return layout.size < model[layout.key].size;
+    });
+
+    $("fitNotice").textContent = reduced
+      ? "긴 문구를 영역에 맞게 자동 축소했어요."
+      : "미리보기 그대로, 같은 해상도의 PNG로 저장됩니다.";
+  }
+
+  function sync() {
+    const text = model[layer];
+
+    $("caption").value = text.text;
+    $("chars").textContent =
+      `${text.text.length} / 2000`;
+
+    $("fontSize").value = text.size;
+    $("textX").value = text.x;
+    $("textY").value = text.y;
+
+    $("sizeValue").textContent = text.size + "px";
+    $("xValue").textContent = text.x + "%";
+    $("yValue").textContent = text.y + "%";
+
+    $("textColor").value = text.color;
+    $("bgColor").value = model.bg;
+    $("fit").value = model.fit;
+    $("outline").checked = model.outline;
+    $("origin").value = model.origin;
+    $("license").value = model.license;
+
+    document
+      .querySelectorAll("[data-layer]")
+      .forEach((button) => {
+        const active =
+          button.dataset.layer === layer;
+
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", active);
+      });
+
+    document
+      .querySelectorAll("[data-ratio]")
+      .forEach((button) => {
+        const active =
+          button.dataset.ratio === model.ratio;
+
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", active);
+      });
+
+    paint();
+  }
+
+  function commit(next) {
+    if (next.length > 20) {
+      throw Error(
+        "템플릿은 최대 20개까지 저장할 수 있습니다. JSON으로 백업한 뒤 정리하세요."
+      );
+    }
+
+    const json = JSON.stringify({
+      version: 1,
+      templates: next
+    });
+
+    C.parseBackup(json);
+
+    try {
+      localStorage.setItem(KEY, json);
+    } catch {
+      throw Error(
+        "브라우저 저장 공간이 부족하거나 차단되었습니다. 기존 목록은 유지됩니다. JSON 백업을 사용하세요."
+      );
+    }
+
+    templates = next;
+    renderTemplates();
+  }
+
+  function openTemplates() {
+    $("templateSection").hidden = false;
+
+    $("templateSection").scrollIntoView({
+      behavior: "smooth"
+    });
+  }
+
+  function renderTemplates() {
+    $("count").textContent = templates.length;
+    $("templateList").replaceChildren();
+
+    if (!templates.length) {
+      const paragraph = document.createElement("p");
+
+      paragraph.className = "empty";
+
+      paragraph.textContent =
+        "아직 저장한 템플릿이 없어요. 마음에 드는 조합을 저장해 보세요.";
+
+      $("templateList").append(paragraph);
+    }
+
+    for (const template of templates) {
+      const card = document.createElement("article");
+
+      card.className =
+        "template-card" +
+        (selected === template.id ? " selected" : "");
+
+      const name = document.createElement("h3");
+      name.textContent = template.name;
+
+      const paragraph = document.createElement("p");
+
+      paragraph.textContent =
+        template.model.ratio +
+        " · " +
+        (
+          template.model.top.text ||
+          template.model.bottom.text ||
+          "문구 없음"
+        );
+
+      const actions = document.createElement("div");
+      actions.className = "actions";
+
+      const commands = [
+        [
+          "불러오기",
+          () => useTemplate(template.id)
+        ],
+        [
+          "수정 저장",
+          () => updateTemplate(template.id)
+        ],
+        [
+          "삭제",
+          () => deleteTemplate(template.id)
+        ]
+      ];
+
+      for (const [label, action] of commands) {
+        const button = document.createElement("button");
+
+        button.textContent = label;
+        button.onclick = action;
+
+        actions.append(button);
+      }
+
+      card.append(name, paragraph, actions);
+      $("templateList").append(card);
+    }
+
+    buttons();
+  }
+
+  async function useTemplate(id) {
+    const template = templates.find((item) => {
+      return item.id === id;
+    });
+
+    if (!template) {
+      return;
+    }
+
+    const token = ++request;
+
+    loading++;
+    buttons();
+
+    try {
+      const next = C.clone(template.model);
+      const result = await normalizeSource(next.image);
+
+      if (token !== request) {
+        return;
+      }
+
+      next.image = result.src;
+
+      image = result.im;
+      model = next;
+      selected = id;
+
+      $("templateName").value = template.name;
+
+      sync();
+      renderTemplates();
+
+      notice("템플릿을 불러왔어요.");
+    } catch (error) {
+      notice(error.message, true);
+    } finally {
+      loading--;
+      buttons();
+    }
+  }
+
+  function updateTemplate(id) {
+    if (!ready || loading) {
+      return;
+    }
+
+    if (selected !== id) {
+      notice(
+        "수정할 템플릿을 먼저 불러온 뒤 편집하세요.",
+        true
+      );
+
+      return;
+    }
+
+    const name = $("templateName").value.trim();
+
+    if (!name) {
+      notice("템플릿 이름을 입력하세요.", true);
+      return;
+    }
+
+    try {
+      commit(
+        templates.map((template) => {
+          if (template.id === id) {
+            return {
+              id,
+              name,
+              model: C.clone(model)
+            };
+          }
+
+          return template;
+        })
+      );
+
+      notice(
+        "같은 템플릿에 수정 사항을 저장했어요."
+      );
+    } catch (error) {
+      notice(error.message, true);
+    }
+  }
+
+  function deleteTemplate(id) {
+    const template = templates.find((item) => {
+      return item.id === id;
+    });
+
+    if (
+      !template ||
+      !confirm(
+        "“" + template.name + "” 템플릿을 삭제할까요?"
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const next = templates.filter((item) => {
+        return item.id !== id;
+      });
+
+      commit(next);
+
+      if (selected === id) {
+        selected = null;
+        renderTemplates();
+      }
+
+      notice(
+        "템플릿을 삭제했어요. 현재 편집 내용은 유지됩니다."
+      );
+    } catch (error) {
+      notice(error.message, true);
+    }
+  }
+
+  $("saveNew").onclick = () => {
+    const name = $("templateName").value.trim();
+
+    if (!name) {
+      notice(
+        "템플릿 이름을 먼저 입력하세요.",
+        true
+      );
+
+      $("templateName").focus();
+      return;
+    }
+
+    try {
+      const id = uuid();
+
+      commit([
+        ...templates,
+        {
+          id,
+          name,
+          model: C.clone(model)
+        }
+      ]);
+
+      selected = id;
+
+      renderTemplates();
+      openTemplates();
+
+      notice(
+        "사진과 문구를 새 템플릿으로 저장했어요."
+      );
+    } catch (error) {
+      notice(error.message, true);
+    }
+  };
+
+  $("templatesTab").onclick = openTemplates;
+
+  document
+    .querySelectorAll("[data-layer]")
+    .forEach((button) => {
+      button.onclick = () => {
+        layer = button.dataset.layer;
+        sync();
+      };
+    });
+
+  document
+    .querySelectorAll("[data-ratio]")
+    .forEach((button) => {
+      button.onclick = () => {
+        model.ratio = button.dataset.ratio;
+        sync();
+      };
+    });
+
+  const textFields = [
+    ["caption", "text"],
+    ["fontSize", "size"],
+    ["textX", "x"],
+    ["textY", "y"],
+    ["textColor", "color"]
+  ];
+
+  for (const [id, key] of textFields) {
+    $(id).addEventListener("input", () => {
+      model[layer][key] =
+        ["size", "x", "y"].includes(key)
+          ? Number($(id).value)
+          : $(id).value;
+
+      const text = model[layer];
+
+      $("chars").textContent =
+        text.text.length + " / 2000";
+
+      $("sizeValue").textContent =
+        text.size + "px";
+
+      $("xValue").textContent =
+        text.x + "%";
+
+      $("yValue").textContent =
+        text.y + "%";
+
+      paint();
+    });
+  }
+
+  const modelFields = [
+    ["bgColor", "bg"],
+    ["fit", "fit"],
+    ["origin", "origin"],
+    ["license", "license"]
+  ];
+
+  for (const [id, key] of modelFields) {
+    $(id).addEventListener("input", () => {
+      model[key] = $(id).value;
+      paint();
+    });
+  }
+
+  $("outline").onchange = () => {
+    model.outline = $("outline").checked;
+    paint();
+  };
+
+  document
+    .querySelectorAll("[data-preset]")
+    .forEach((button) => {
+      button.onclick = () => {
+        model.top.text =
+          C.presets[Number(button.dataset.preset)];
+
+        layer = "top";
+
+        sync();
+
+        notice(
+          "문구를 적용했어요. 크기와 위치를 조절해 보세요."
+        );
+      };
+    });
+
+  async function replaceImage(source, isDefault) {
+    const token = ++request;
+
+    loading++;
+    buttons();
+
+    try {
+      const result = await normalizeSource(source);
+
+      if (token !== request) {
+        return;
+      }
+
+      model.image = result.src;
+      image = result.im;
+
+      if (isDefault) {
+        model.origin = C.initial().origin;
+        model.license = C.initial().license;
+      } else {
+        model.origin = "";
+        model.license = "";
+      }
+
+      sync();
+
+      notice(
+        "이미지를 불러왔어요. 출처 기록도 확인해 주세요."
+      );
+    } catch (error) {
+      notice(error.message, true);
+    } finally {
+      loading--;
+      buttons();
+    }
+  }
+
+  $("defaultImage").onclick = () => {
+    return replaceImage("builtin:muyaho", true);
+  };
+
+  $("imageFile").onchange = async () => {
+    const file = $("imageFile").files[0];
+
+    $("imageFile").value = "";
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      if (file.size > 10 * 1024 * 1024) {
+        throw Error(
+          "이미지 파일은 10MB 이하여야 합니다. 기존 작업은 유지됩니다."
+        );
+      }
+
+      const header = new Uint8Array(
+        await file.slice(0, 12).arrayBuffer()
+      );
+
+      const png =
+        header[0] === 137 &&
+        header[1] === 80 &&
+        header[2] === 78 &&
+        header[3] === 71 &&
+        header[4] === 13 &&
+        header[5] === 10 &&
+        header[6] === 26 &&
+        header[7] === 10;
+
+      const jpeg =
+        header[0] === 255 &&
+        header[1] === 216 &&
+        header[2] === 255;
+
+      if (!png && !jpeg) {
+        throw Error(
+          "PNG와 JPEG만 지원합니다. 파일 내용이 지원 형식이 아닙니다. 기존 작업은 유지됩니다."
+        );
+      }
+
+      const url = URL.createObjectURL(file);
+
+      try {
+        await replaceImage(url, false);
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    } catch (error) {
+      notice(error.message, true);
+    }
+  };
+
+  function downloadBlob(blob, name) {
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+
+    anchor.href = url;
+    anchor.download = name;
+
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 1500);
+  }
+
+  $("download").onclick = async () => {
+    loading++;
+    buttons();
+
+    try {
+      await document.fonts.load(
+        '900 64px "Meme Sans"'
+      );
+
+      await document.fonts.ready;
+
+      paint();
+
+      const blob = await new Promise(
+        (resolve, reject) => {
+          canvas.toBlob((result) => {
+            if (result) {
+              resolve(result);
+            } else {
+              reject(
+                Error("PNG 생성에 실패했습니다.")
+              );
+            }
+          }, "image/png");
+        }
+      );
+
+      downloadBlob(
+        blob,
+        "muyaho-" +
+          model.ratio.replace(":", "x") +
+          ".png"
+      );
+
+      notice(
+        "PNG를 저장했어요. 다운로드 폴더에서 확인하세요."
+      );
+    } catch (error) {
+      notice(error.message, true);
+    } finally {
+      loading--;
+      buttons();
+    }
+  };
+
+  $("exportJson").onclick = async () => {
+    if (!templates.length) {
+      notice(
+        "저장할 템플릿을 먼저 만들어 주세요.",
+        true
+      );
+
+      return;
+    }
+
+    loading++;
+    buttons();
+
+    try {
+      const exported = C.clone(templates);
+      let builtin;
+
+      for (const template of exported) {
+        if (
+          template.model.image === "builtin:muyaho"
+        ) {
+          if (!builtin) {
+            builtin = normalized(
+              await loadImage("builtin:muyaho")
+            );
+          }
+
+          template.model.image = builtin;
+        }
+      }
+
+      const text = JSON.stringify(
+        {
+          version: 1,
+          templates: exported
+        },
+        null,
+        2
+      );
+
+      if (text.length > 16 * 1024 * 1024) {
+        throw Error(
+          "백업이 너무 큽니다. 이미지 크기나 템플릿 수를 줄여 주세요."
+        );
+      }
+
+      downloadBlob(
+        new Blob([text], {
+          type: "application/json"
+        }),
+        "muyaho-templates.json"
+      );
+
+      notice(
+        "사진이 포함된 JSON 백업을 저장했어요."
+      );
+    } catch (error) {
+      notice(error.message, true);
+    } finally {
+      loading--;
+      buttons();
+    }
+  };
+
+  $("importJson").onclick = () => {
+    $("jsonFile").click();
+  };
+
+  $("jsonFile").onchange = async () => {
+    const file = $("jsonFile").files[0];
+
+    $("jsonFile").value = "";
+
+    if (!file) {
+      return;
+    }
+
+    loading++;
+    buttons();
+
+    try {
+      if (file.size > 16 * 1024 * 1024) {
+        throw Error("JSON은 16MB 이하여야 합니다.");
+      }
+
+      const imported = C.parseBackup(
+        await file.text()
+      );
+
+      if (
+        templates.length + imported.length > 20
+      ) {
+        throw Error(
+          "가져온 뒤 템플릿 수가 20개를 넘습니다. 기존 목록은 유지됩니다."
+        );
+      }
+
+      const clean = [];
+
+      for (const template of imported) {
+        const result = await normalizeSource(
+          template.model.image
+        );
+
+        clean.push({
+          id: uuid(),
+          name: template.name,
+
+          model: {
+            ...template.model,
+            image: result.src
+          }
+        });
+      }
+
+      commit([
+        ...templates,
+        ...clean
+      ]);
+
+      openTemplates();
+
+      notice(
+        clean.length +
+          "개 템플릿을 추가로 복원했어요."
+      );
+    } catch (error) {
+      notice(error.message, true);
+    } finally {
+      loading--;
+      buttons();
+    }
+  };
+
+  buttons();
+
+  try {
+    const raw = localStorage.getItem(KEY);
+
+    if (raw) {
+      templates = C.parseBackup(raw);
+    }
+  } catch (error) {
+    notice(
+      "저장된 템플릿을 읽지 못했습니다. 원본 저장은 덮어쓰지 않았어요.",
+      true
+    );
+  }
+
+  renderTemplates();
+
+  try {
+    await document.fonts.load(
+      '900 64px "Meme Sans"'
+    );
+
+    await document.fonts.ready;
+
+    image = await loadImage("builtin:muyaho");
+    ready = true;
+
+    sync();
+
+    notice(
+      "위 문구를 바꿔서 나만의 무야호를 만들어 보세요."
+    );
+  } catch (error) {
+    notice(error.message, true);
+  } finally {
+    buttons();
+  }
+
+  if (document.modelContext?.registerTool) {
+    try {
+      Promise.resolve(
+        document.modelContext.registerTool({
+          name: "read_meme_editor",
+
+          description:
+            "Read current meme captions, aspect ratio and template count.",
+
+          inputSchema: {
+            type: "object",
+            properties: {},
+            additionalProperties: false
+          },
+
+          annotations: {
+            readOnlyHint: true
+          },
+
+          execute: (input) => {
+            if (
+              !input ||
+              typeof input !== "object" ||
+              Array.isArray(input) ||
+              Object.keys(input).length
+            ) {
+              throw Error("Expected empty object");
+            }
+
+            return {
+              ratio: model.ratio,
+              top: model.top.text,
+              bottom: model.bottom.text,
+              templates: templates.length,
+              ready
+            };
+          }
+        })
+      ).catch(() => {});
+    } catch {}
+  }
+})();
